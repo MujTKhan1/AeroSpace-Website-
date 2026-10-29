@@ -3,80 +3,451 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#f3f1eb">
-  <meta name="description" content="Mission Beacon — aerospace technical-regulatory intelligence and advisory, grounded in your engineering baseline.">
-  <title>Mission Beacon — Every change. In perspective.</title>
+  <meta name="theme-color" content="#05070d">
+  <meta name="description" content="Mission Beacon provides aerospace technical-regulatory intelligence and advisory services, from approved engineering baselines to review-ready evidence.">
+  <title>Mission Beacon — Engineering evidence for regulatory decisions</title>
   <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./assets/fonts.css">
-  <link rel="stylesheet" href="./hero.css">
+  <link rel="preload" href="./assets/font-6.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="./assets/font-1.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="./styles.css">
+  <script>if (!matchMedia('(prefers-reduced-motion: reduce)').matches) { document.documentElement.classList.add('motion'); setTimeout(() => document.documentElement.classList.remove('motion'), 3000); }</script>
   <script src="./assets/gsap.min.js" defer></script>
-  <script src="./app.js" defer></script>
-  <script src="./scene.js" type="module"></script>
+  <script src="./assets/ScrollTrigger.min.js" defer></script>
+  <script src="./assets/lenis.min.js" defer></script>
+  <script src="./main.js" defer></script>
+  <script src="./space.js" type="module"></script>
+  <script src="./juno.js" type="module"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
-  <div class="page-shell">
-    <header class="site-header">
-      <a class="brand" href="./" aria-label="Mission Beacon home">
-        <svg class="brand-symbol" viewBox="0 0 48 48" fill="none" aria-hidden="true"><circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="1.2"/><ellipse cx="24" cy="24" rx="7" ry="20" transform="rotate(38 24 24)" stroke="currentColor" stroke-width="1.2"/><circle cx="24" cy="24" r="4" fill="currentColor"/><path d="M24 1v7m0 32v7M1 24h7m32 0h7" stroke="currentColor" stroke-width="1.2"/></svg>
-        <span>mission beacon<span class="brand-period">.</span></span>
-      </a>
-      <nav class="desktop-nav" aria-label="Main navigation">
-        <button data-panel="expertise">Capabilities</button>
-        <button data-panel="approach">Method</button>
-        <button data-panel="mission">Company</button>
-      </nav>
-      <button class="header-contact" data-panel="brief">Discuss a technical change <span aria-hidden="true">↗</span></button>
-      <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="mobile-nav"><span></span><span></span></button>
-    </header>
-    <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" hidden>
-      <button data-panel="expertise">Capabilities <span>↗</span></button>
-      <button data-panel="approach">Method <span>↗</span></button>
-      <button data-panel="mission">Company <span>↗</span></button>
-      <button data-panel="brief">Discuss a technical change <span>↗</span></button>
+
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Mission Beacon home"><span>Mission Beacon</span>
+    </a>
+    <nav class="nav" aria-label="Main navigation">
+      <a href="#capabilities">Capabilities</a>
+      <a href="#method">Method</a>
+      <a href="#principles">Company</a>
+      <a href="#engagement">Engagement</a>
     </nav>
-    <main id="main">
-      <section class="hero" aria-labelledby="hero-title">
-        <div class="hero-glow" aria-hidden="true"></div>
-        <div class="horizon" aria-hidden="true"></div>
-        <div class="hero-coordinate" aria-hidden="true"><span class="coordinate-rule"></span> INDEPENDENT INTELLIGENCE / AEROSPACE</div>
-        <div class="hero-content">
-          <div class="eyebrow"><span class="signal-dot"></span> Technical precision. Human judgement.</div>
-          <h1 id="hero-title"><span class="line"><span>Every change.</span></span><span class="line"><span class="accent-word">In perspective.</span></span></h1>
-          <p class="hero-description">Aerospace technical-regulatory intelligence.<br>From engineering baselines to informed review.</p>
-          <div class="hero-actions">
-            <button class="primary-button" data-panel="expertise">Explore capabilities <span class="button-arrow" aria-hidden="true">↗</span></button>
-            <button class="text-button" data-panel="approach">Our method <span aria-hidden="true">↗</span></button>
-          </div>
+    <a class="header-cta" href="#contact">Discuss a technical change <span aria-hidden="true">→</span></a>
+    <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="mobile-nav"><span></span><span></span></button>
+  </header>
+  <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" hidden>
+    <a href="#capabilities">Capabilities</a>
+    <a href="#method">Method</a>
+    <a href="#principles">Company</a>
+    <a href="#engagement">Engagement</a>
+    <a href="#contact" class="mobile-cta">Discuss a technical change <span aria-hidden="true">→</span></a>
+  </nav>
+
+  <main id="main">
+    <!-- 01 Hero: the only dark, space-themed section. -->
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="hero-stage" aria-hidden="true">
+        <div class="hero-fallback"><div class="fallback-globe"></div></div>
+        <canvas id="space-canvas"></canvas>
+        <div class="hero-vignette"></div>
+      </div>
+      <div class="hero-inner">
+        <h1 id="hero-title" class="hero-title">
+          <span class="line"><span>When an aerospace design</span></span>
+          <span class="line"><span>changes, the regulatory</span></span>
+          <span class="line"><span><em>record must keep up.</em></span></span>
+        </h1>
+        <p class="hero-lede">We trace proposed changes against the approved baseline and prepare the evidence your reviewers need.</p>
+        <div class="hero-actions">
+          <a class="btn btn-light" href="#contact">Discuss a technical change <span aria-hidden="true">→</span></a>
+          <a class="btn btn-ghost" href="#capabilities">Explore capabilities</a>
         </div>
-        <div class="space-stage" aria-label="Interactive modular satellite with illustrative baseline and proposed-change views">
-          <div class="scene-backplate" aria-hidden="true"></div>
-          <div class="scene-fallback" aria-hidden="true"><img src="./assets/satellite-fallback.svg" alt="" width="800" height="680"></div>
-          <canvas id="space-canvas" aria-hidden="true"></canvas>
-          <div class="scene-tag tag-top"><span class="crosshair" aria-hidden="true">+</span><div>ENGINEERING IN PERSPECTIVE<span>One assembly. A connected view.</span></div></div>
-          <div class="component-label"><span class="label-line" aria-hidden="true"></span><span id="component-caption">Communications module<span id="component-status">Baseline configuration</span></span></div>
-          <div class="configuration-control" role="group" aria-label="Illustrative satellite configuration"><span class="illustration-label">ILLUSTRATIVE ASSEMBLY</span><div><button class="configuration-button active" data-configuration="baseline" aria-pressed="true"><span>01</span> Baseline</button><button class="configuration-button" data-configuration="proposed" aria-pressed="false"><span>02</span> Proposed change</button></div><p id="configuration-description" aria-live="polite">Baseline configuration · illustrative only</p></div>
-          <div class="scene-controls">
-            <span class="drag-hint">Drag to rotate</span>
-            <button id="view-toggle" aria-label="Rotate the 3D view" title="Change perspective"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13 5a5 5 0 1 0 0 6M13 2v4H9" stroke="currentColor" stroke-width="1.2"/></svg></button>
-            <button id="motion-toggle" aria-label="Pause model motion" aria-pressed="false"><svg class="pause-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 4v8M11 4v8" stroke="currentColor" stroke-width="1.5"/></svg><svg class="play-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3 8 5-8 5V3Z" fill="currentColor"/></svg></button>
+      </div>
+      <div class="hero-foot mono">
+        <span>Advisory support only</span>
+        <a class="scroll-cue" href="#gap"><span class="scroll-line" aria-hidden="true"></span>Scroll</a>
+        <span aria-hidden="true"></span>
+      </div>
+    </section>
+
+    <div class="light-shell">
+      <!-- 02 Gap -->
+      <section class="section gap" id="gap" aria-labelledby="gap-title">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow mono"><span>01</span>The gap</p>
+            <h2 id="gap-title" class="split">The drawing changed. <em>Did the regulatory record change with it?</em></h2>
+            <p class="lead reveal">Engineering records show what has changed in the design. Regulatory records may still describe an earlier configuration. We establish the technical difference, identify the records that depend on it and prepare the questions that require review.</p>
           </div>
-        </div>
-        <div class="hero-index" aria-hidden="true"><span>01 / PERSPECTIVE</span><div></div><span>ENGINEERING / CONTEXT</span></div>
-        <div class="hero-bottom">
-          <button class="perspective-link" data-panel="mission"><span class="circle-arrow" aria-hidden="true">↓</span><span>Built for what comes next.</span></button>
-          <p>Evidence and questions for qualified reviewers.</p>
-          <button class="edition" data-panel="credits">ILLUSTRATIVE 3D / SOURCE <span aria-hidden="true">↗</span></button>
+          <div class="trace" role="group" aria-label="Illustrative diagram: the engineering record has moved from Rev A to Rev B while the regulatory records still describe Rev A">
+            <div class="trace-row trace-eng">
+              <p class="trace-name mono">Engineering record</p>
+              <div class="trace-track">
+                <span class="trace-rail" aria-hidden="true"><span class="trace-fill"></span></span>
+                <span class="trace-node">Rev A</span>
+                <span class="trace-item">Controlled drawing</span>
+                <span class="trace-item">Bill of materials</span>
+                <span class="trace-item">Software configuration</span>
+                <span class="trace-item">Interface control document</span>
+                <span class="trace-node trace-node-b">Rev B</span>
+              </div>
+            </div>
+            <div class="trace-row trace-reg">
+              <p class="trace-name mono">Regulatory record</p>
+              <div class="trace-track">
+                <span class="trace-rail" aria-hidden="true"></span>
+                <span class="trace-node">Rev A</span>
+                <span class="trace-item">Classification record</span>
+                <span class="trace-item">Licence conditions</span>
+                <span class="trace-item">Spectrum filing</span>
+                <span class="trace-item">Permit evidence</span>
+                <span class="trace-node trace-node-open" aria-hidden="true"></span>
+              </div>
+            </div>
+            <p class="trace-gap mono">Records still describe Rev A</p>
+          </div>
+          <p class="note mono">Illustrative record types — not a customer configuration.</p>
         </div>
       </section>
-    </main>
-    <footer class="capability-strip" aria-label="From engineering baseline to qualified review"><div class="strip-heading"><span class="strip-label">THE BIGGER PICTURE</span><span>Connected. Considered. Clear.</span></div><div class="process-track"><span><small>01</small> Engineering baseline</span><i aria-hidden="true">↗</i><span><small>02</small> Proposed change</span><i aria-hidden="true">↗</i><span><small>03</small> Evidence & questions</span><i aria-hidden="true">↗</i><span><small>04</small> Qualified review</span></div></footer>
-  </div>
-  <dialog class="info-dialog" id="info-dialog" aria-labelledby="dialog-title"><div class="dialog-inner"><button class="dialog-close" aria-label="Close dialog">×</button><p class="dialog-eyebrow">MISSION BEACON / <span id="dialog-number">01</span></p><div id="dialog-content"></div></div></dialog>
-  <template id="panel-approach"><h2 id="dialog-title">Start with the baseline.<br><em>See the implications.</em></h2><p class="dialog-intro">A structured path from an engineering change to a better-informed review.</p><ol class="approach-list"><li><span>01</span><div><h3>Establish the baseline</h3><p>Begin with the approved engineering configuration and the proposed technical change.</p></div></li><li><span>02</span><div><h3>Connect the questions</h3><p>Identify relevant evidence, dependencies and technical-regulatory questions.</p></div></li><li><span>03</span><div><h3>Inform qualified review</h3><p>Put the findings in context for the engineers, compliance specialists and counsel responsible for the decision.</p></div></li></ol><button class="primary-button" data-panel="brief">Plan a conversation <span>↗</span></button></template>
-  <template id="panel-expertise"><h2 id="dialog-title">Engineering evidence.<br><em>Regulatory context.</em></h2><p class="dialog-intro">Four advisory capabilities connect your technical baseline to the questions qualified reviewers need to consider.</p><div class="expertise-list"><div><span>01</span><h3>Engineering Change Regulatory Impact Advisory</h3><p>Controlled baseline comparison and a Regulatory Impact Assessment Digest.</p></div><div><span>02</span><h3>Export Jurisdiction &amp; Classification Intelligence</h3><p>Technical evidence mapped to candidate USML/CCL review questions and a classification memorandum.</p></div><div><span>03</span><h3>Pre-Filing Regulatory Package Intelligence</h3><p>Revision-controlled parameter evidence and a pre-filing validation package.</p></div><div><span>04</span><h3>Milestone Compliance Readiness Audit</h3><p>Review-gate evidence assessment and a risk heatmap.</p></div></div><p class="dialog-footnote">Technical advisory supports qualified review. Formal legal and regulatory determinations remain with responsible professionals and authorities.</p></template>
-  <template id="panel-mission"><h2 id="dialog-title">A clearer signal.<br><em>For human judgement.</em></h2><p class="dialog-intro">Aerospace changes rarely exist in isolation. Mission Beacon helps teams see the technical and regulatory questions around them.</p><p class="mission-copy">Our work begins with your approved engineering baseline. We connect proposed changes with the evidence and questions that qualified reviewers need to consider — helping chief engineers, configuration teams, compliance specialists and programme leaders see the bigger picture.</p><div class="mission-statement"><span class="signal-dot"></span> Technical precision. Human judgement.</div><button class="primary-button" data-panel="approach">See the approach <span>↗</span></button></template>
-  <template id="panel-brief"><h2 id="dialog-title">Your next change.<br><em>In perspective.</em></h2><p class="dialog-intro">Outline the conversation you want to have. Create a short briefing note to share with your team.</p><form id="brief-form"><label for="brief-name">Programme or organisation</label><input id="brief-name" name="programme" autocomplete="organization" placeholder="Your programme" maxlength="120" required><label for="brief-focus">Where do you need perspective?</label><select id="brief-focus" name="focus"><option>Engineering & configuration</option><option>Trade & regulatory context</option><option>Spectrum & programme context</option><option>Connecting the bigger picture</option></select><label for="brief-context">A little context <span>(optional)</span></label><textarea id="brief-context" name="context" placeholder="A high-level outline of the proposed change or review…" maxlength="1500" rows="3"></textarea><p class="form-note">Keep your outline high-level and free of controlled or sensitive technical details.</p><button class="primary-button" type="submit">Create briefing note <span>↗</span></button><p id="brief-result" class="brief-result" role="status"></p></form></template>
-<template id="panel-credits"><h2 id="dialog-title">An illustrative<br><em>technical assembly.</em></h2><p class="dialog-intro">The modular source geometry is from NASA/Ames Research Center's Satellite Kit. It has been reassembled, rescaled, given new materials and supplemented with illustrative structural and communications details.</p><p class="mission-copy">The baseline and proposed views demonstrate a communications-module change. They are illustrative configurations, with no claimed performance, flight qualification or regulatory outcome.</p><p class="dialog-footnote">NASA does not endorse Mission Beacon. This illustration is not a Mission Beacon client project.</p><a class="source-link" href="https://science.nasa.gov/3d-resources/satellite-kit/" target="_blank" rel="noopener noreferrer">View the original Satellite Kit <span aria-hidden="true">↗</span></a></template>
+
+      <!-- 03 Services -->
+      <section class="section services" id="capabilities" aria-labelledby="services-title">
+        <div class="container">
+          <div class="section-head section-head-split">
+            <div>
+              <p class="eyebrow mono"><span>02</span>Capabilities</p>
+              <h2 id="services-title" class="split">Four ways to turn technical changes into <em>review-ready evidence.</em></h2>
+            </div>
+            <p class="lead reveal">Each service begins with controlled engineering records and ends with a structured deliverable that authorised reviewers can examine.</p>
+          </div>
+          <div class="cap-layout">
+            <div class="cap-visual">
+              <div class="cap-stage">
+                <img class="cap-fallback" src="./assets/satellite-fallback.svg" alt="" width="800" height="680">
+                <p class="juno-credit mono">NASA Juno spacecraft model · Credit: NASA VTAD · Engineering reference only, not a Mission Beacon project</p>
+                <p class="juno-hint mono" aria-hidden="true">Drag to rotate</p>
+                <ul class="cap-labels" aria-hidden="true">
+                  <li class="cap-label is-active"><b class="mono">01 · Deliverable</b><span>Regulatory Impact Assessment Digest</span></li>
+                  <li class="cap-label"><b class="mono">02 · Deliverable</b><span>Classification Memorandum</span></li>
+                  <li class="cap-label"><b class="mono">03 · Deliverable</b><span>Pre-Filing Validation Package</span></li>
+                  <li class="cap-label"><b class="mono">04 · Deliverable</b><span>Readiness Audit and Risk Heatmap</span></li>
+                </ul>
+              </div>
+            </div>
+            <ol class="cap-list">
+              <li class="cap-item is-active">
+                <span class="cap-num">01</span>
+                <h3>Engineering Change Regulatory Impact</h3>
+                <p>Compare a proposed revision with the approved baseline and identify potentially affected regulatory records.</p>
+                <p class="cap-out"><span class="mono">Deliverable</span>Regulatory Impact Assessment Digest</p>
+              </li>
+              <li class="cap-item">
+                <span class="cap-num">02</span>
+                <h3>Export Jurisdiction and Classification</h3>
+                <p>Organise technical characteristics and source evidence for authorised classification review against candidate USML and CCL criteria.</p>
+                <p class="cap-out"><span class="mono">Deliverable</span>Classification Memorandum</p>
+              </li>
+              <li class="cap-item">
+                <span class="cap-num">03</span>
+                <h3>Pre-Filing Regulatory Package</h3>
+                <p>Validate technical parameters, units and revision status before a filing.</p>
+                <p class="cap-out"><span class="mono">Deliverable</span>Pre-Filing Validation Package</p>
+              </li>
+              <li class="cap-item">
+                <span class="cap-num">04</span>
+                <h3>Milestone Compliance Readiness</h3>
+                <p>Identify unresolved technical-regulatory questions before a programme review.</p>
+                <p class="cap-out"><span class="mono">Deliverable</span>Readiness Audit and Risk Heatmap</p>
+              </li>
+            </ol>
+          </div>
+          <p class="supporting reveal"><span class="mono">Supporting scopes</span> Technical Data Jurisdiction Analysis · Regulatory Risk Retainer and CCB Support</p>
+        </div>
+      </section>
+
+      <!-- 04 Starting point: baseline vs proposed, same camera -->
+      <section class="section compare" aria-labelledby="compare-title">
+        <div class="container compare-layout">
+          <div class="compare-copy">
+            <p class="eyebrow mono"><span>03</span>Starting point</p>
+            <h2 id="compare-title" class="split">Start with one change package, <em>not a platform replacement.</em></h2>
+            <p class="lead reveal">An Engineering Change Proposal, bill-of-materials revision, software update or supplier substitution provides a defined starting point. The review follows the approved source, the proposed change and the evidence needed for the next decision.</p>
+            <ul class="chip-list reveal">
+              <li>Engineering Change Proposal</li><li>BOM revision</li><li>Software update</li><li>Supplier substitution</li>
+            </ul>
+          </div>
+          <figure class="redline">
+            <!-- Redline sheet: graphite baseline (Rev A), amber proposed change (Rev B). No dimensions are given. -->
+            <svg class="redline-svg" viewBox="0 0 640 580" role="img" aria-labelledby="redline-title">
+              <title id="redline-title">Illustrative redline drawing of a communications reflector assembly. The proposed Rev B enlarges the dish and moves the feed compared with the approved Rev A.</title>
+              <defs>
+                <pattern id="rl-grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#e7e3d8" stroke-width=".6"/></pattern>
+                <marker id="rl-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1.5 9 5 0 8.5" fill="none" stroke="#3a4350" stroke-width="1.2"/></marker>
+                <marker id="rl-arrow-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1.5 9 5 0 8.5" fill="none" stroke="#b86e1c" stroke-width="1.2"/></marker>
+              </defs>
+              <rect x="8" y="8" width="624" height="564" fill="url(#rl-grid)" stroke="#cfccc2"/>
+              <text class="rl-text rl-fade" x="28" y="38">Side elevation · not to scale</text>
+
+              <g class="rl-base" fill="none" stroke="#3a4350" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+                <path class="rl-draw" pathLength="1" d="M80 450h140v10H80z"/>
+                <path class="rl-draw" pathLength="1" d="M100 450 150 370 200 450M120 418h60"/>
+                <path class="rl-draw" pathLength="1" d="M150 370 227 250"/>
+                <path class="rl-draw" pathLength="1" d="M227 240h14v20h-14z"/>
+                <path class="rl-draw" pathLength="1" d="M280.6 145Q219.4 250 280.6 355"/>
+                <path class="rl-draw" pathLength="1" d="M276 141Q206 250 276 359M280.6 145 276 141M280.6 355 276 359"/>
+                <path class="rl-draw" pathLength="1" d="M250 250H340M280.6 145 340 241M280.6 355 340 259"/>
+                <path class="rl-draw" pathLength="1" d="M340 241 360 245V255L340 259Z"/>
+                <circle class="rl-draw" pathLength="1" cx="150" cy="370" r="6" fill="#f7f6f2"/>
+                <path class="rl-fade" d="M86 462l-8 10M98 462l-8 10M110 462l-8 10M122 462l-8 10M134 462l-8 10M146 462l-8 10M158 462l-8 10M170 462l-8 10M182 462l-8 10M194 462l-8 10M206 462l-8 10M218 462l-8 10" stroke-width=".8"/>
+                <path class="rl-fade" d="M196 250H436" stroke="#8a93a0" stroke-width=".8" stroke-dasharray="14 4 2 4"/>
+                <path class="rl-fade" d="M285 145H461M285 355H461" stroke-width=".7"/>
+                <path class="rl-fade" d="M455 147V353" stroke-width=".9" marker-start="url(#rl-arrow)" marker-end="url(#rl-arrow)"/>
+              </g>
+              <text class="rl-text rl-fade" transform="translate(445 250) rotate(-90)" text-anchor="middle">Ø per approved drawing</text>
+
+              <g class="rl-prop" fill="none" stroke="#b86e1c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path class="rl-draw-b" pathLength="1" d="M293.75 110Q206.25 250 293.75 390"/>
+                <path class="rl-draw-b" pathLength="1" d="M293.75 110 362 240M293.75 390 362 260"/>
+                <path class="rl-draw-b" pathLength="1" d="M362 240 384 245V255L362 260Z"/>
+                <path class="rl-fade-b" d="M298 110H511M298 390H511" stroke-width=".7"/>
+                <path class="rl-fade-b" d="M505 112V388" stroke-width=".9" marker-start="url(#rl-arrow-b)" marker-end="url(#rl-arrow-b)"/>
+              </g>
+              <text class="rl-text rl-amber rl-fade-b" transform="translate(527 250) rotate(-90)" text-anchor="middle">Ø per ECP redline</text>
+
+              <path class="rl-cloud" d="M364.0,118.0 A11.1,11.1 0 0 1 356.7,135.7 A14.2,14.2 0 0 1 336.4,149.3 A17.0,17.0 0 0 1 307.7,155.7 A17.7,17.7 0 0 1 277.3,153.5 A15.8,15.8 0 0 1 252.1,143.2 A12.5,12.5 0 0 1 237.9,127.1 A10.5,10.5 0 0 1 237.9,108.9 A12.5,12.5 0 0 1 252.1,92.8 A15.8,15.8 0 0 1 277.3,82.5 A17.7,17.7 0 0 1 307.7,80.3 A17.0,17.0 0 0 1 336.4,86.7 A14.2,14.2 0 0 1 356.7,100.3 A11.1,11.1 0 0 1 364.0,118.0" fill="none" stroke="#b86e1c" stroke-width="1.3"/>
+              <g class="rl-mark">
+                <path d="M392 56 407 82H377Z" fill="#f7f6f2" stroke="#b86e1c" stroke-width="1.3" stroke-linejoin="round"/>
+                <text class="rl-text rl-amber" x="392" y="77" text-anchor="middle">B</text>
+                <path d="M377 82 362 104" fill="none" stroke="#b86e1c" stroke-width=".8"/>
+              </g>
+
+              <g class="rl-block rl-fade">
+                <path d="M326 470H620V556H326ZM326 499H620M326 527H620" fill="#f7f6f2" stroke="#3a4350" stroke-width="1"/>
+                <text class="rl-text" x="340" y="489">Comms assembly · illustrative</text>
+                <text class="rl-text" x="340" y="518">Rev A → <tspan class="rl-amber">Rev B</tspan></text>
+                <text class="rl-text" x="340" y="546">ECP: demo</text>
+              </g>
+            </svg>
+            <p class="redline-caption mono">Same assembly. One defined change.</p>
+            <figcaption class="note mono">Illustrative configuration only.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- 05 Scenario -->
+      <section class="section scenario" aria-labelledby="scenario-title">
+        <div class="container">
+          <div class="section-head section-head-split">
+            <div>
+              <p class="eyebrow mono"><span>04</span>Illustrative scenario</p>
+              <h2 id="scenario-title" class="split">A communications update is <em>more than a part swap.</em></h2>
+            </div>
+            <p class="lead reveal">Consider a proposed change to a transmitter, antenna or operating mode. Centre frequency, bandwidth, power, gain and software-controlled behaviour may need to be compared with the current technical baseline. The question is which existing classification, spectrum or filing records require a fresh review.</p>
+          </div>
+          <div class="table-wrap reveal">
+            <table class="param-table">
+              <caption class="mono">Parameter comparison · values are taken from your controlled sources, not assumed</caption>
+              <thead>
+                <tr><th scope="col">Parameter</th><th scope="col">Baseline · Rev A</th><th scope="col">Proposed · Rev B</th><th scope="col">Records that may depend on it</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Centre frequency</th><td class="src">Approved ICD</td><td class="src">ECP redline</td><td><span class="pill">Spectrum filing</span><span class="pill">Licence condition</span></td></tr>
+                <tr><th scope="row">Bandwidth</th><td class="src">Approved ICD</td><td class="src">ECP redline</td><td><span class="pill">Spectrum filing</span></td></tr>
+                <tr><th scope="row">Transmit power</th><td class="src">Subsystem specification</td><td class="src">Supplier datasheet</td><td><span class="pill">Licence condition</span><span class="pill">Classification record</span></td></tr>
+                <tr><th scope="row">Antenna gain</th><td class="src">Antenna drawing</td><td class="src">Revised drawing</td><td><span class="pill">Spectrum filing</span><span class="pill">Classification record</span></td></tr>
+                <tr><th scope="row">Operating modes</th><td class="src">Software config baseline</td><td class="src">Software update notes</td><td><span class="pill">Classification record</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="note mono">Illustrative scenario — not a customer case or regulatory determination.</p>
+        </div>
+      </section>
+
+      <!-- 06 Digest -->
+      <section class="section digest" aria-labelledby="digest-title">
+        <div class="container digest-layout">
+          <div class="digest-copy">
+            <p class="eyebrow mono"><span>05</span>The deliverable</p>
+            <h2 id="digest-title" class="split">A change board needs <em>an evidence record.</em></h2>
+            <p class="lead reveal">The Regulatory Impact Assessment Digest brings together the changed technical characteristic, source revision, relevant record, responsible reviewer and open action. It provides a structured basis for discussion without pretending that a technical assessment is a formal agency ruling.</p>
+          </div>
+          <div class="digest-doc" aria-label="Sample Regulatory Impact Assessment Digest, illustrative demo data">
+            <div class="doc-watermark mono" aria-hidden="true">Demo data</div>
+            <div class="doc-top">
+              <div>
+                <p class="mono doc-kicker">Regulatory Impact Assessment Digest</p>
+                <p class="doc-title">Communications assembly change</p>
+              </div>
+              <img class="doc-thumb" src="./assets/satellite-proposed.svg" alt="" width="80" height="68">
+            </div>
+            <dl class="doc-meta mono">
+              <div><dt>Baseline</dt><dd>Rev A</dd></div>
+              <div><dt>Proposed</dt><dd>Rev B</dd></div>
+              <div><dt>Status</dt><dd>For review</dd></div>
+            </dl>
+            <div class="doc-rows">
+              <div class="doc-row doc-row-head mono"><span>Changed characteristic</span><span>Relevant record</span><span>Reviewer</span><span>Open action</span></div>
+              <div class="doc-row"><span>Reflector geometry</span><span>Spectrum filing</span><span>Regulatory affairs</span><span class="act">Confirm review need</span></div>
+              <div class="doc-row"><span>Operating mode</span><span>Classification record</span><span>Empowered Official</span><span class="act">Request evidence</span></div>
+              <div class="doc-row"><span>Supplier part</span><span>Licence condition</span><span>Trade compliance</span><span class="act">Check scope</span></div>
+            </div>
+            <p class="doc-foot mono">Illustrative demo data · not a regulatory determination</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 07 Audiences -->
+      <section class="section audiences" aria-labelledby="aud-title">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow mono"><span>06</span>Who it serves</p>
+            <h2 id="aud-title" class="split">One change. <em>Different decisions.</em></h2>
+          </div>
+          <div class="aud-table" role="list">
+            <div class="aud-row reveal-row" role="listitem"><span class="aud-who">Chief engineers</span><span class="aud-arrow" aria-hidden="true">→</span><span class="aud-need">need the technical delta.</span></div>
+            <div class="aud-row reveal-row" role="listitem"><span class="aud-who">Configuration control boards</span><span class="aud-arrow" aria-hidden="true">→</span><span class="aud-need">need the authoritative revision and owner.</span></div>
+            <div class="aud-row reveal-row" role="listitem"><span class="aud-who">Export compliance</span><span class="aud-arrow" aria-hidden="true">→</span><span class="aud-need">needs the characteristics that support classification review.</span></div>
+            <div class="aud-row reveal-row" role="listitem"><span class="aud-who">Regulatory affairs</span><span class="aud-arrow" aria-hidden="true">→</span><span class="aud-need">needs the filing and permit questions.</span></div>
+            <div class="aud-row reveal-row" role="listitem"><span class="aud-who">Programme leadership</span><span class="aud-arrow" aria-hidden="true">→</span><span class="aud-need">needs the unresolved actions before the next gate.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 08 Method: six stages on a vertical timeline -->
+      <section class="section method" id="method" aria-labelledby="method-title">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow mono"><span>07</span>Method</p>
+            <h2 id="method-title" class="split">From source evidence to an <em>accountable review decision.</em></h2>
+          </div>
+          <div class="timeline">
+            <span class="tl-line" aria-hidden="true"><span class="tl-fill"></span></span>
+            <ol class="tl-list">
+              <li class="tl-step"><span class="tl-node" aria-hidden="true"></span><div class="tl-body"><span class="tl-num">01</span><h3>Establish the approved baseline.</h3><p>We confirm the controlled drawings, BOM, requirements, PLM export and authoritative revision.</p><span class="stage-out mono">Source register</span></div></li>
+              <li class="tl-step"><span class="tl-node" aria-hidden="true"></span><div class="tl-body"><span class="tl-num">02</span><h3>Capture the proposed change.</h3><p>We examine the ECP or ECN, redlines, substituted parts and relevant software or interface changes.</p><span class="stage-out mono">Change register</span></div></li>
+              <li class="tl-step"><span class="tl-node" aria-hidden="true"></span><div class="tl-body"><span class="tl-num">03</span><h3>Compare technical characteristics.</h3><p>Every difference in frequency, bandwidth, gain, power, optical characteristics or operating modes is tied to a source and unit.</p><span class="stage-out mono">Comparison table</span></div></li>
+              <li class="tl-step"><span class="tl-node" aria-hidden="true"></span><div class="tl-body"><span class="tl-num">04</span><h3>Identify regulatory review questions.</h3><p>Changed facts are considered alongside existing classification records, licence conditions, permits and filing evidence.</p><span class="stage-out mono">Question set</span></div></li>
+              <li class="tl-step"><span class="tl-node" aria-hidden="true"></span><div class="tl-body"><span class="tl-num">05</span><h3>Prepare the evidence package.</h3><p>Findings are organised into the agreed digest, memorandum, validation package or audit, with open questions visible.</p><span class="stage-out mono">Evidence package</span></div></li>
+              <li class="tl-step"><span class="tl-node" aria-hidden="true"></span><div class="tl-body"><span class="tl-num">06</span><h3>Record decisions and actions.</h3><p>The responsible reviewer records each disposition. Open actions stay linked to the controlled baseline.</p><span class="stage-out mono">Decision log</span></div></li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- Statement -->
+      <section class="section statement" aria-label="Principle">
+        <div class="container">
+          <p class="statement-text">Technical evidence first. <em>Human authority always.</em></p>
+        </div>
+      </section>
+
+      <!-- 09 Principles -->
+      <section class="section principles" id="principles" aria-label="Principles">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow mono"><span>08</span>Principles</p>
+            <p class="lead reveal">Mission Beacon works from controlled source material, preserves revision references and makes unanswered questions visible. Legal interpretation, formal classification and regulatory filings remain with the authorised parties.</p>
+          </div>
+          <div class="principle-split">
+            <div>
+              <p class="mono split-label">What we prepare</p>
+              <ul class="plain-list">
+                <li>Source registers tied to authoritative revisions</li>
+                <li>Technical deltas with units and provenance</li>
+                <li>Questions that require authorised review</li>
+                <li>Open actions linked to the controlled baseline</li>
+              </ul>
+            </div>
+            <span class="principle-rule" aria-hidden="true"></span>
+            <div>
+              <p class="mono split-label">What stays with authorised parties</p>
+              <ul class="plain-list plain-list-hold">
+                <li>Legal interpretation</li>
+                <li>Formal classification decisions</li>
+                <li>Licensing submissions and regulatory filings</li>
+                <li>Agency approvals</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 10 Engagement -->
+      <section class="section engagement" id="engagement" aria-labelledby="eng-title">
+        <div class="container">
+          <div class="section-head section-head-split">
+            <div>
+              <p class="eyebrow mono"><span>09</span>Engagement</p>
+              <h2 id="eng-title" class="split">Fit the engagement <em>to the decision.</em></h2>
+            </div>
+            <p class="lead reveal">Choose a focused assessment for one change, a recurring retainer for ongoing CCB and classification support, or an embedded partnership for broader programme work.</p>
+          </div>
+          <div class="scale">
+            <span class="scale-line" aria-hidden="true"><span class="scale-fill"></span></span>
+            <ol class="scale-stops">
+              <li class="scale-stop"><span class="scale-dot" aria-hidden="true"></span><div class="scale-body"><span class="mono scale-type">Focused</span><h3>Regulatory Intelligence Assessment</h3><p>A bounded review of one change, technical package, filing question or upcoming milestone.</p></div></li>
+              <li class="scale-stop"><span class="scale-dot" aria-hidden="true"></span><div class="scale-body"><span class="mono scale-type">Recurring</span><h3>CCB Change Review and Classification Retainer</h3><p>Recurring technical evidence reviews for configuration control and export compliance teams.</p></div></li>
+              <li class="scale-stop"><span class="scale-dot" aria-hidden="true"></span><div class="scale-body"><span class="mono scale-type">Embedded</span><h3>Aerospace Intelligence Partnership</h3><p>Longer-term advisory support across programme changes, reviews and regulatory questions.</p></div></li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- 11 CTA + contact -->
+      <section class="section contact" id="contact" aria-labelledby="contact-title">
+        <div class="container contact-layout">
+          <div class="contact-copy">
+            <p class="eyebrow mono"><span>10</span>Contact</p>
+            <h2 id="contact-title" class="split">Bring the change. <em>Establish the decision path.</em></h2>
+            <p class="lead reveal">Tell us which engineering decision, regulatory filing or programme review is approaching. A high-level, non-sensitive description is enough to begin.</p>
+            <img class="contact-sat reveal" src="./assets/satellite-fallback.svg" alt="" width="800" height="680">
+          </div>
+          <form class="contact-form reveal" id="contact-form" novalidate>
+            <div class="field-row">
+              <label>Full name<input name="name" autocomplete="name" required></label>
+              <label>Work email<input name="email" type="email" autocomplete="email" required></label>
+            </div>
+            <div class="field-row">
+              <label>Organisation<input name="org" autocomplete="organization" required></label>
+              <label>Role or responsibility<input name="role" required></label>
+            </div>
+            <label>Area of interest
+              <select name="area" required>
+                <option value="">Select one</option>
+                <option>Engineering Change Regulatory Impact</option>
+                <option>Export Jurisdiction and Classification</option>
+                <option>Pre-Filing Regulatory Package</option>
+                <option>Milestone Readiness</option>
+                <option>Recurring CCB Support</option>
+                <option>Unsure</option>
+              </select>
+            </label>
+            <label><span>Upcoming milestone or decision date <span class="opt">Optional</span></span><input name="milestone"></label>
+            <label>Brief description<textarea name="description" rows="4" maxlength="1500" required placeholder="Describe the decision or change at a high level. Do not include technical specifications or controlled files."></textarea></label>
+            <div class="security-note" role="note">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6l-8-3Z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v5m0 3v.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <div><strong>Please do not send controlled technical information through this form.</strong> Do not submit classified information, export-controlled technical data, Controlled Unclassified Information (CUI), proprietary CAD files, source code or sensitive engineering records. Secure document exchange requirements can be discussed separately.</div>
+            </div>
+            <button class="btn btn-dark" type="submit">Send inquiry <span aria-hidden="true">→</span></button>
+            <p class="form-status" id="form-status" role="status"></p>
+          </form>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <a class="brand brand-footer" href="#top"><span>Mission Beacon</span></a>
+        <p class="footer-tag">Engineering evidence for regulatory decisions.</p>
+      </div>
+      <nav class="footer-nav mono" aria-label="Footer navigation">
+        <a href="#capabilities">Capabilities</a><a href="#method">Method</a><a href="#principles">Company</a><a href="#contact">Contact</a>
+      </nav>
+    </div>
+    <div class="container footer-legal">
+      <p>Mission Beacon provides aerospace technical-regulatory intelligence and advisory services. Technical intelligence does not replace legal or agency authority: formal legal interpretation, classification decisions, licensing submissions and agency approvals remain with the authorised parties.</p>
+      <p>Satellite imagery is an illustrative assembly based on NASA/Ames Research Center Satellite Kit geometry. NASA does not endorse Mission Beacon. <a href="https://science.nasa.gov/3d-resources/satellite-kit/" target="_blank" rel="noopener noreferrer">Source ↗</a></p>
+    </div>
+  </footer>
 </body>
 </html>
