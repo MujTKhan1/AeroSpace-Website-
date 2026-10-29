@@ -128,7 +128,7 @@
   })
     .to('.hero-inner', { y: -120, autoAlpha: 0, ease: 'none' }, 0)
     .to('.hero-foot', { autoAlpha: 0, ease: 'none', duration: .4 }, 0)
-    .to('.hero-stage', { scale: .94, filter: 'brightness(.45)', ease: 'none' }, 0);
+    .to('.hero-stage', { scale: .97, ease: 'none' }, 0);
 
   // ---------- Section reveals ----------
   gsap.utils.toArray('.split').forEach(el => {

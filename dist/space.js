@@ -91,8 +91,60 @@ function createScene() {
         gl_FragColor = vec4(vec3(.35,.55,1.) * f * lit * ${strength.toFixed(2)}, 1.); }`,
     side, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
   }));
-  globe.add(atmosphere(1.0, THREE.FrontSide, 4.0, .55));
-  globe.add(atmosphere(1.16, THREE.BackSide, 3.5, .7));
+  globe.add(atmosphere(1.0, THREE.FrontSide, 4.5, .3));
+  globe.add(atmosphere(1.1, THREE.BackSide, 4.0, .38));
+
+  // Wormhole: particles spiral down a funnel behind the globe, which sits in its throat.
+  const wormhole = new THREE.Group();
+  wormhole.rotation.set(.32, -.38, 0);
+  scene.add(wormhole);
+  const holeCount = 14000;
+  const holeAngle = new Float32Array(holeCount), holeDepth = new Float32Array(holeCount), holeJitter = new Float32Array(holeCount);
+  for (let i = 0; i < holeCount; i++) { holeAngle[i] = Math.random() * Math.PI * 2; holeDepth[i] = Math.random(); holeJitter[i] = Math.random(); }
+  const holeGeo = new THREE.BufferGeometry();
+  holeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(holeCount * 3), 3));
+  holeGeo.setAttribute('angle', new THREE.BufferAttribute(holeAngle, 1));
+  holeGeo.setAttribute('depth', new THREE.BufferAttribute(holeDepth, 1));
+  holeGeo.setAttribute('jitter', new THREE.BufferAttribute(holeJitter, 1));
+  const holeMat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 }, uPixel: { value: renderer.getPixelRatio() } },
+    vertexShader: `attribute float angle; attribute float depth; attribute float jitter; uniform float uTime; uniform float uPixel; varying float vAlpha; varying float vU;
+      void main(){ float u = fract(depth + uTime * (.018 + jitter * .012));
+        float r = 2.05 + 5.2 * pow(1. - u, 2.2) + (jitter - .5) * .35 * (1. - u);
+        float a = angle + u * 7.5 + uTime * (.08 + u * .25);
+        vec3 p = vec3(cos(a) * r, sin(a) * r, -u * 26.);
+        vec4 mv = modelViewMatrix * vec4(p, 1.); gl_Position = projectionMatrix * mv;
+        vAlpha = smoothstep(0., .18, u) * (1. - smoothstep(.65, 1., u)); vU = u;
+        gl_PointSize = (.8 + jitter * 1.1) * uPixel * (10. / -mv.z); }`,
+    fragmentShader: `varying float vAlpha; varying float vU; void main(){ float d = length(gl_PointCoord - .5); if (d > .5) discard;
+        vec3 c = mix(vec3(.45,.62,1.), vec3(.55,.42,1.), vU);
+        gl_FragColor = vec4(c, vAlpha * .85 * smoothstep(.5, .1, d)); }`,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+  });
+  // Spiral filaments give the funnel its shape; the group's spin animates them.
+  const filaments = new THREE.Group();
+  wormhole.add(filaments);
+  const filamentMat = new THREE.ShaderMaterial({
+    vertexShader: `attribute float u; varying float vU; void main(){ vU = u; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }`,
+    fragmentShader: `varying float vU; void main(){ float a = smoothstep(0., .12, vU) * (1. - smoothstep(.55, 1., vU));
+        gl_FragColor = vec4(mix(vec3(.4,.58,1.), vec3(.5,.4,1.), vU), a * .15); }`,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+  });
+  const filamentCount = 64, steps = 160;
+  for (let f = 0; f < filamentCount; f++) {
+    const pos = new Float32Array(steps * 3), us = new Float32Array(steps), a0 = f / filamentCount * Math.PI * 2;
+    for (let i = 0; i < steps; i++) {
+      const u = i / (steps - 1), r = 2.05 + 5.2 * Math.pow(1 - u, 2.2), a = a0 + u * 7.5;
+      pos.set([Math.cos(a) * r, Math.sin(a) * r, -u * 26], i * 3); us[i] = u;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('u', new THREE.BufferAttribute(us, 1));
+    filaments.add(new THREE.Line(geo, filamentMat));
+  }
+  const holePoints = new THREE.Points(holeGeo, holeMat);
+  holePoints.frustumCulled = false;
+  wormhole.add(holePoints);
 
   // Orbit rings
   const ringGroup = new THREE.Group();
@@ -124,9 +176,11 @@ function createScene() {
   function place(progress) {
     // Keep the globe right of the copy on desktop and above it on phones.
     const halfW = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z * camera.aspect;
-    if (mobile) { globe.position.set(halfW * .45, 2.3 + progress * 1.2, -1); globe.scale.setScalar(.7); }
-    else { globe.position.set(halfW * .56, -.1 + progress * 1.4, 0); globe.scale.setScalar(.78 + progress * .15); }
-    camera.position.z = 10 - progress * 1.2;
+    // The globe holds its place while the light page slides over it, so it never jumps out of view.
+    if (mobile) { globe.position.set(halfW * .45, 2.1, -1); globe.scale.setScalar(.7); }
+    else { globe.position.set(halfW * .56, -.1, 0); globe.scale.setScalar(.78 - progress * .04); }
+    wormhole.position.copy(globe.position);
+    wormhole.scale.setScalar(globe.scale.x / .78);
   }
   function render() { renderer.render(scene, camera); }
   function frame(now) {
@@ -136,6 +190,8 @@ function createScene() {
       time += dt;
       const p = shared.hero;
       starMat.uniforms.uTime.value = time;
+      holeMat.uniforms.uTime.value = time + p * 6;
+      filaments.rotation.z = -(time * .06 + p * 1.5);
       globe.rotation.y = time * .045 + p * 1.2;
       globe.rotation.x += ((pointerY * .08) - globe.rotation.x) * .04;
       scene.rotation.y += ((pointerX * .04) - scene.rotation.y) * .04;
@@ -191,7 +247,7 @@ async function loadSatellite(group) {
   r.traverse(m => { if (m.isMesh) m.material = /Dish/.test(m.material.name) ? dish : metal; });
   const assembly = new THREE.Group();
   assembly.add(b, w, r);
-  assembly.scale.setScalar(.13);
+  assembly.scale.setScalar(.22);
   group.add(assembly);
 }
 
