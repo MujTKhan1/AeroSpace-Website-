@@ -7,7 +7,7 @@
       .from('h1 .line > span', { yPercent: 115, rotate: 3, duration: 1.15, stagger: .13 }, .35)
       .from('.hero-description', { opacity: 0, y: 18, duration: .8 }, .85)
       .from('.hero-actions', { opacity: 0, y: 18, duration: .8 }, 1.02)
-      .from('.scene-tag, .scene-controls', { opacity: 0, duration: 1, stagger: .15 }, 1.25)
+      .from('.scene-tag, .scene-controls', { opacity: 0, duration: .65, stagger: .1 }, .9)
       .from('.hero-bottom, .capability-strip', { opacity: 0, y: 12, duration: .9, stagger: .1 }, 1.05);
     reduced.addEventListener('change', e => { if (e.matches) tl.progress(1).kill(); });
   }
@@ -33,7 +33,7 @@
     if (!dialog.open) lastTrigger = trigger;
     closeMenu();
     content.replaceChildren(template.content.cloneNode(true));
-    document.getElementById('dialog-number').textContent = { approach: '01', expertise: '02', mission: '03', brief: '04' }[trigger.dataset.panel];
+    document.getElementById('dialog-number').textContent = { approach: '01', expertise: '02', mission: '03', brief: '04', credits: '05' }[trigger.dataset.panel];
     if (!dialog.open) { dialog.showModal(); document.body.classList.add('dialog-open'); }
     dialog.scrollTop = 0;
     document.querySelector('.dialog-close').focus({ preventScroll: true });

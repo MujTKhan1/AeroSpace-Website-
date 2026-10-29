@@ -1,33 +1,34 @@
-# Mission Beacon
+# Mission Beacon — hero concept
 
-A focused, responsive aerospace hero concept with a custom Three.js satellite, procedural planet, orbital paths, and GSAP headline reveals.
+A hero-only aerospace design based on the client's Website Architecture and 3D Direction brief. Off-white editorial typography, a navy studio backdrop and restrained amber details frame one modular, interactive satellite.
 
-## Preview
+## Run locally
 
-Run `npm run dev` and open `http://127.0.0.1:4173`.
+Run `npm run dev`, then open http://127.0.0.1:4173/ . There is no build step or dependency installation. The deployable site is in `dist/` and all fonts, models, libraries and decoders are served locally.
 
-The deployable website lives in `dist/`; no build or dependency installation is needed. Fonts, Three.js 0.170.0, and GSAP 3.12.5 are served locally.
+## Hero interactions
 
-## Interactions
+- GSAP reveals the heading and introductory copy.
+- Baseline and Proposed change buttons select two illustrative communications-module configurations on the same spacecraft assembly.
+- Mouse drag or the Rotate view button changes the model's orientation.
+- Pause stops automatic model motion. Reduced-motion preferences disable automatic movement and entrance animation.
+- A matching static SVG is available when WebGL or model loading fails.
+- Navigation opens concise prototype panels; no additional site pages are built.
+- The high-level briefing form downloads a local note. It does not send an inquiry or store user submissions.
 
-- Drag the satellite with a mouse to adjust its orientation.
-- Pause or play the orbital animation using the circular control.
-- Reduced-motion preferences disable automatic motion and text reveals.
-- Navigation and the main action open concise, keyboard-accessible content panels.
-- The briefing form downloads a note locally. It does not send a message or collect submitted data.
-- A static illustration remains visible when WebGL is unavailable.
+## Source and requirements
 
-## Design
+The hero communicates technical-regulatory intelligence and advisory support for qualified human reviewers. It makes no agency, NASA partnership, autonomous compliance, legal-determination or approval claim.
 
-Space-black and muted green surfaces, warm white typography, signal-lime accents, Space Grotesk display type, and DM Sans body type. The copy positions Mission Beacon as technical-regulatory intelligence and advisory support for qualified human reviewers.
+NASA/Ames Satellite Kit parts were inspected and assembled for the hero. Source credits, original file names, usage notes, modifications and fallbacks are recorded in [ASSET-REGISTER.md](ASSET-REGISTER.md). The original source-asset reference image is retained under `documentation/` and is not used as the hero image.
 
-The wordmark and satellite are original visual concepts for this prototype. No agency seals, fabricated credentials, clients, or performance claims are included.
+## Key files
 
-## Files
+- `dist/index.html` — hero, selectable HTML labels and prototype panels
+- `dist/hero.css` — editorial composition and responsive styles
+- `dist/app.js` — GSAP entrance, panels and briefing-note download
+- `dist/scene.js` — studio lighting, spacecraft assembly and configuration interaction
+- `dist/assets/satellite-kit/` — selected modular GLB parts
+- `dist/assets/licenses/` — local licence files
 
-- `dist/index.html`: hero, navigation and supporting panels
-- `dist/style.css`: visual design and responsive layout
-- `dist/app.js`: GSAP entrance, accessible panels and local briefing note
-- `dist/scene.js`: custom 3D satellite, planet and orbit
-
-`npm run check` validates the application JavaScript syntax.
+`npm run check` verifies application JavaScript syntax. Desktop, phone, configuration switching and navigation are also checked in the browser.
