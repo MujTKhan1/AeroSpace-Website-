@@ -1,0 +1,9 @@
+# The site is prebuilt static files in dist/, so there is nothing to build.
+[build]
+  publish = "dist"
+  command = ""
+
+[[headers]]
+  for = "/*.glb"
+  [headers.values]
+    Content-Type = "model/gltf-binary"
