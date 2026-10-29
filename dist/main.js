@@ -242,9 +242,13 @@
 
     // Footer slides over the last section like a sheet: contact holds by its bottom edge (so its Send
     // button stays reachable), then recedes and dims beneath the footer. Phones scroll normally.
+    // The footer fills the screen below the header, so the slide ends exactly at max scroll; its top
+    // corners square off as it lands so the final state is a clean full screen.
     gsap.timeline({
       scrollTrigger: { trigger: '.contact', start: 'bottom bottom', end: 'max', pin: true, pinSpacing: false, scrub: true, invalidateOnRefresh: true }
-    }).to('.contact', { '--dim': .45, scale: .94, transformOrigin: '50% 100%', ease: 'none' });
+    })
+      .to('.contact', { '--dim': .45, scale: .94, transformOrigin: '50% 100%', ease: 'none', duration: 1 }, 0)
+      .to('.site-footer', { borderTopLeftRadius: 0, borderTopRightRadius: 0, ease: 'none', duration: .15 }, .85);
 
     // Footer wordmark drifts a little with the pointer.
     const card = document.querySelector('.foot-card');
