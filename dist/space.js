@@ -2,7 +2,7 @@ import * as THREE from './assets/three.module.js';
 import { GLTFLoader } from './assets/GLTFLoader.js';
 import { DRACOLoader } from './assets/DRACOLoader.js';
 
-// Hero scene: starfield, dotted globe with atmosphere, orbit rings and the
+// Hero scene: starfield, dotted globe with atmosphere and a misty accretion ring, orbit rings and the
 // illustrative NASA Satellite Kit assembly travelling along one orbit.
 const canvas = document.getElementById('space-canvas');
 const hero = document.querySelector('.hero');
@@ -94,57 +94,65 @@ function createScene() {
   globe.add(atmosphere(1.0, THREE.FrontSide, 4.5, .3));
   globe.add(atmosphere(1.1, THREE.BackSide, 4.0, .38));
 
-  // Wormhole: particles spiral down a funnel behind the globe, which sits in its throat.
-  const wormhole = new THREE.Group();
-  wormhole.rotation.set(.32, -.38, 0);
-  scene.add(wormhole);
-  const holeCount = 14000;
-  const holeAngle = new Float32Array(holeCount), holeDepth = new Float32Array(holeCount), holeJitter = new Float32Array(holeCount);
-  for (let i = 0; i < holeCount; i++) { holeAngle[i] = Math.random() * Math.PI * 2; holeDepth[i] = Math.random(); holeJitter[i] = Math.random(); }
-  const holeGeo = new THREE.BufferGeometry();
-  holeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(holeCount * 3), 3));
-  holeGeo.setAttribute('angle', new THREE.BufferAttribute(holeAngle, 1));
-  holeGeo.setAttribute('depth', new THREE.BufferAttribute(holeDepth, 1));
-  holeGeo.setAttribute('jitter', new THREE.BufferAttribute(holeJitter, 1));
-  const holeMat = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 }, uPixel: { value: renderer.getPixelRatio() } },
-    vertexShader: `attribute float angle; attribute float depth; attribute float jitter; uniform float uTime; uniform float uPixel; varying float vAlpha; varying float vU;
-      void main(){ float u = fract(depth + uTime * (.018 + jitter * .012));
-        float r = 2.05 + 5.2 * pow(1. - u, 2.2) + (jitter - .5) * .35 * (1. - u);
-        float a = angle + u * 7.5 + uTime * (.08 + u * .25);
-        vec3 p = vec3(cos(a) * r, sin(a) * r, -u * 26.);
-        vec4 mv = modelViewMatrix * vec4(p, 1.); gl_Position = projectionMatrix * mv;
-        vAlpha = smoothstep(0., .18, u) * (1. - smoothstep(.65, 1., u)); vU = u;
-        gl_PointSize = (.8 + jitter * 1.1) * uPixel * (10. / -mv.z); }`,
-    fragmentShader: `varying float vAlpha; varying float vU; void main(){ float d = length(gl_PointCoord - .5); if (d > .5) discard;
-        vec3 c = mix(vec3(.45,.62,1.), vec3(.55,.42,1.), vU);
-        gl_FragColor = vec4(c, vAlpha * .85 * smoothstep(.5, .1, d)); }`,
-    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
-  });
-  // Spiral filaments give the funnel its shape; the group's spin animates them.
-  const filaments = new THREE.Group();
-  wormhole.add(filaments);
-  const filamentMat = new THREE.ShaderMaterial({
-    vertexShader: `attribute float u; varying float vU; void main(){ vU = u; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }`,
-    fragmentShader: `varying float vU; void main(){ float a = smoothstep(0., .12, vU) * (1. - smoothstep(.55, 1., vU));
-        gl_FragColor = vec4(mix(vec3(.4,.58,1.), vec3(.5,.4,1.), vU), a * .15); }`,
-    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
-  });
-  const filamentCount = 64, steps = 160;
-  for (let f = 0; f < filamentCount; f++) {
-    const pos = new Float32Array(steps * 3), us = new Float32Array(steps), a0 = f / filamentCount * Math.PI * 2;
-    for (let i = 0; i < steps; i++) {
-      const u = i / (steps - 1), r = 2.05 + 5.2 * Math.pow(1 - u, 2.2), a = a0 + u * 7.5;
-      pos.set([Math.cos(a) * r, Math.sin(a) * r, -u * 26], i * 3); us[i] = u;
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    geo.setAttribute('u', new THREE.BufferAttribute(us, 1));
-    filaments.add(new THREE.Line(geo, filamentMat));
+  // Accretion ring: misty gas bands wrapping the globe nearly edge-on, plus a faint particle swirl.
+  // Depth testing against the globe hides the far half, so the ring reads as passing behind it.
+  const ringFx = new THREE.Group();
+  ringFx.rotation.set(1.32, .12, .38);
+  scene.add(ringFx);
+  const fbm = `float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    float vnoise(vec2 p, float per){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
+      float x0 = mod(i.x, per), x1 = mod(i.x + 1., per);
+      return mix(mix(hash(vec2(x0, i.y)), hash(vec2(x1, i.y)), f.x), mix(hash(vec2(x0, i.y + 1.)), hash(vec2(x1, i.y + 1.)), f.x), f.y); }
+    float fbm(vec2 p, float per){ float v = 0., a = .5; for (int i = 0; i < 4; i++) { v += a * vnoise(p, per); p *= 2.; per *= 2.; a *= .5; } return v; }`;
+  const gasLayer = (outer, gain, speed) => {
+    const mat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 } },
+      vertexShader: `varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }`,
+      fragmentShader: `uniform float uTime; varying vec3 vP; ${fbm}
+        void main(){ float r = length(vP.xy) / ${R.toFixed(2)}, a = atan(vP.y, vP.x);
+          float band = smoothstep(1., 1.18, r) * (1. - smoothstep(1.45, ${outer.toFixed(2)}, r));
+          // Angle is wrapped onto a periodic noise lattice so there is no seam; inner gas moves faster.
+          float x = (a / 6.2831853 + .5) * 16. + uTime * ${speed.toFixed(2)} / (r * r) + r * 3.;
+          float streaks = smoothstep(.2, .85, fbm(vec2(x, r * 5.), 16.));
+          float lit = .35 + .65 * pow(.5 + .5 * cos(a - 2.6), 2.);
+          vec3 c = mix(vec3(.45,.6,1.), vec3(.92,.95,1.), smoothstep(1.05, 1.35, r) * streaks);
+          gl_FragColor = vec4(c * band * (.35 + .65 * streaks) * lit * ${gain.toFixed(2)}, 1.); }`,
+      side: THREE.DoubleSide, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
+    });
+    return new THREE.Mesh(new THREE.RingGeometry(R, R * 3, 256, 8), mat);
+  };
+  const gasMain = gasLayer(3., .55, 1.6);
+  const gasThin = gasLayer(2.2, .3, 1.1);
+  gasThin.rotation.set(.06, -.05, .4);
+  ringFx.add(gasMain, gasThin);
+
+  const swirlCount = 5000;
+  const swirlRadius = new Float32Array(swirlCount), swirlAngle = new Float32Array(swirlCount), swirlSeed = new Float32Array(swirlCount);
+  for (let i = 0; i < swirlCount; i++) {
+    swirlRadius[i] = R * (1.15 + Math.pow(Math.random(), 1.6) * 1.45);
+    swirlAngle[i] = Math.random() * Math.PI * 2;
+    swirlSeed[i] = Math.random();
   }
-  const holePoints = new THREE.Points(holeGeo, holeMat);
-  holePoints.frustumCulled = false;
-  wormhole.add(holePoints);
+  const swirlGeo = new THREE.BufferGeometry();
+  swirlGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(swirlCount * 3), 3));
+  swirlGeo.setAttribute('radius', new THREE.BufferAttribute(swirlRadius, 1));
+  swirlGeo.setAttribute('angle', new THREE.BufferAttribute(swirlAngle, 1));
+  swirlGeo.setAttribute('seed', new THREE.BufferAttribute(swirlSeed, 1));
+  const swirlMat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 }, uPixel: { value: renderer.getPixelRatio() } },
+    vertexShader: `attribute float radius; attribute float angle; attribute float seed; uniform float uTime; uniform float uPixel; varying float vAlpha;
+      void main(){ float k = radius / ${R.toFixed(2)}; float a = angle + uTime * .55 / pow(k, 1.5);
+        vec3 p = vec3(cos(a) * radius, sin(a) * radius, (seed - .5) * .08 * k);
+        vec4 mv = modelViewMatrix * vec4(p, 1.); gl_Position = projectionMatrix * mv;
+        vAlpha = (.25 + .75 * pow(.5 + .5 * cos(a - 2.6), 2.)) * (1. - smoothstep(2.1, 2.6, k));
+        gl_PointSize = (.6 + seed * .9) * uPixel * (10. / -mv.z); }`,
+    fragmentShader: `varying float vAlpha; void main(){ float d = length(gl_PointCoord - .5); if (d > .5) discard;
+        gl_FragColor = vec4(vec3(.75,.84,1.), vAlpha * .55 * smoothstep(.5, .1, d)); }`,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+  });
+  const swirl = new THREE.Points(swirlGeo, swirlMat);
+  swirl.frustumCulled = false;
+  ringFx.add(swirl);
 
   // Orbit rings
   const ringGroup = new THREE.Group();
@@ -179,8 +187,8 @@ function createScene() {
     // The globe holds its place while the light page slides over it, so it never jumps out of view.
     if (mobile) { globe.position.set(halfW * .45, 2.1, -1); globe.scale.setScalar(.7); }
     else { globe.position.set(halfW * .56, -.1, 0); globe.scale.setScalar(.78 - progress * .04); }
-    wormhole.position.copy(globe.position);
-    wormhole.scale.setScalar(globe.scale.x / .78);
+    ringFx.position.copy(globe.position);
+    ringFx.scale.setScalar(globe.scale.x);
   }
   function render() { renderer.render(scene, camera); }
   function frame(now) {
@@ -190,8 +198,11 @@ function createScene() {
       time += dt;
       const p = shared.hero;
       starMat.uniforms.uTime.value = time;
-      holeMat.uniforms.uTime.value = time + p * 6;
-      filaments.rotation.z = -(time * .06 + p * 1.5);
+      // Scrolling speeds the swirl up slightly.
+      const swirlTime = time + p * 4;
+      gasMain.material.uniforms.uTime.value = swirlTime;
+      gasThin.material.uniforms.uTime.value = swirlTime * .7;
+      swirlMat.uniforms.uTime.value = swirlTime;
       globe.rotation.y = time * .045 + p * 1.2;
       globe.rotation.x += ((pointerY * .08) - globe.rotation.x) * .04;
       scene.rotation.y += ((pointerX * .04) - scene.rotation.y) * .04;

@@ -65,15 +65,8 @@
   });
   form.addEventListener('input', e => { if (e.target.getAttribute('aria-invalid') === 'true' && e.target.checkValidity()) e.target.removeAttribute('aria-invalid'); });
 
-  // ---------- Header theme ----------
-  const shell = document.querySelector('.light-shell');
-  const footer = document.querySelector('.site-footer');
-  function updateHeader() {
-    const y = header.offsetHeight / 2;
-    header.classList.toggle('is-scrolled', scrollY > 20);
-    const onLight = shell.getBoundingClientRect().top <= y && footer.getBoundingClientRect().top > y;
-    header.dataset.theme = onLight ? 'light' : 'dark';
-  }
+  // ---------- Header (always dark; it only compacts once scrolled) ----------
+  function updateHeader() { header.classList.toggle('is-scrolled', scrollY > 20); }
   addEventListener('scroll', updateHeader, { passive: true });
   updateHeader();
 
@@ -112,7 +105,6 @@
   root.classList.remove('motion');
   gsap.timeline({ defaults: { ease: 'expo.out' } })
     .from('.site-header', { y: -30, autoAlpha: 0, duration: 1.2 }, .1)
-    .from('.hero-kicker', { y: 20, autoAlpha: 0, duration: 1.1 }, .3)
     .from('.hero-title .line > span', { yPercent: 110, duration: 1.5, stagger: .12 }, .35)
     .from('.hero-lede', { y: 24, autoAlpha: 0, duration: 1.3 }, .8)
     .from('.hero-actions > *', { y: 20, autoAlpha: 0, duration: 1.1, stagger: .08 }, .95)
@@ -122,7 +114,7 @@
   // Light page slides over the pinned hero.
   gsap.timeline({
     scrollTrigger: {
-      trigger: shell, start: 'top bottom', end: 'top top', scrub: true,
+      trigger: '.light-shell', start: 'top bottom', end: 'top top', scrub: true,
       onUpdate: self => { shared.hero = self.progress; }
     }
   })
@@ -140,58 +132,93 @@
   gsap.utils.toArray('.reveal').forEach(el => {
     gsap.from(el, { y: 30, autoAlpha: 0, duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 88%' } });
   });
-  ScrollTrigger.batch('.reveal-card', {
-    start: 'top 88%',
-    onEnter: batch => gsap.from(batch, { y: 60, autoAlpha: 0, duration: 1.2, ease: 'expo.out', stagger: .1, overwrite: true }),
-    once: true
-  });
   ScrollTrigger.batch('.reveal-row', {
     start: 'top 92%',
     onEnter: batch => gsap.from(batch, { x: -30, autoAlpha: 0, duration: 1, ease: 'expo.out', stagger: .08 }),
     once: true
   });
 
-  // Gap: the connection draws in, then breaks.
-  gsap.timeline({ scrollTrigger: { trigger: '.gap-board', start: 'top 75%' } })
-    .from('.gap-line', { scale: 0, duration: .9, ease: 'power2.inOut', stagger: .15 })
-    .from('.gap-break', { scale: 0, rotate: -90, duration: .8, ease: 'back.out(2)' }, '-=.4')
-    .from('.record-col-alert .status', { autoAlpha: 0, x: 10, duration: .5, stagger: .08 }, '-=.3');
+  // Gap: the engineering record draws from Rev A to Rev B with scroll; the regulatory record stays at Rev A.
+  const trace = document.querySelector('.trace');
+  const traceSteps = trace.querySelectorAll('.trace-eng .trace-item, .trace-eng .trace-node-b');
+  trace.classList.add('is-live');
+  gsap.timeline({
+    scrollTrigger: { trigger: trace, start: 'top 85%', end: 'top 30%', scrub: .6 },
+    onUpdate() {
+      const p = this.progress();
+      traceSteps.forEach((el, i) => el.classList.toggle('is-on', p >= (i === traceSteps.length - 1 ? .98 : (i + .5) / (traceSteps.length - 1))));
+      trace.classList.toggle('is-done', p >= .98);
+    }
+  }).fromTo('.trace-fill', { '--p': 0 }, { '--p': 1, ease: 'none' });
+  gsap.from('.trace-reg .trace-item, .trace-reg .trace-node, .trace-reg .trace-rail', {
+    autoAlpha: 0, y: 8, duration: .9, ease: 'expo.out', stagger: .07,
+    scrollTrigger: { trigger: trace, start: 'top 72%' }
+  });
+
+  // Capabilities: whichever service crosses the middle of the screen becomes active.
+  const capList = document.querySelector('.cap-list');
+  const capItems = gsap.utils.toArray('.cap-item');
+  const capLabels = document.querySelectorAll('.cap-label');
+  const setCap = i => {
+    capItems.forEach((el, j) => el.classList.toggle('is-active', i === j));
+    capLabels.forEach((el, j) => el.classList.toggle('is-active', i === j));
+  };
+  capList.classList.add('is-live');
+  capItems.forEach((item, i) => ScrollTrigger.create({ trigger: item, start: 'top 55%', end: 'bottom 55%', onToggle: self => self.isActive && setCap(i) }));
+
+  // Method: the timeline draws downward and each stage lights as the line reaches it.
+  const timeline = document.querySelector('.timeline');
+  timeline.classList.add('is-live');
+  gsap.fromTo('.tl-fill', { '--p': 0 }, { '--p': 1, ease: 'none', scrollTrigger: { trigger: timeline, start: 'top 60%', end: 'bottom 60%', scrub: .5 } });
+  gsap.utils.toArray('.tl-step').forEach(step => {
+    ScrollTrigger.create({ trigger: step, start: 'top 60%', onEnter: () => step.classList.add('is-on'), onLeaveBack: () => step.classList.remove('is-on') });
+    gsap.from(step.querySelector('.tl-body'), { autoAlpha: 0, y: 30, duration: 1.1, ease: 'expo.out', scrollTrigger: { trigger: step, start: 'top 82%' } });
+  });
+
+  // Statement: words brighten as it scrolls through.
+  const statement = document.querySelector('.statement-text');
+  statement.setAttribute('aria-label', statement.textContent.trim());
+  splitWords(statement);
+  statement.querySelectorAll('.w').forEach(w => w.setAttribute('aria-hidden', 'true'));
+  gsap.fromTo(statement.querySelectorAll('.w > span'), { opacity: .15 }, {
+    opacity: 1, ease: 'none', stagger: .1,
+    scrollTrigger: { trigger: statement, start: 'top 80%', end: 'bottom 45%', scrub: true }
+  });
+
+  // Principles: the dividing rule draws, then both lists settle in.
+  gsap.timeline({ scrollTrigger: { trigger: '.principle-split', start: 'top 75%' } })
+    .from('.principle-rule', { scale: 0, transformOrigin: 'top left', duration: 1.2, ease: 'expo.inOut' })
+    .from('.plain-list li', { autoAlpha: 0, y: 14, duration: .9, ease: 'expo.out', stagger: .06 }, .3);
+
+  // Engagement: the scale fills and each stop lights in turn.
+  const scale = document.querySelector('.scale');
+  const scaleTl = gsap.timeline({ scrollTrigger: { trigger: scale, start: 'top 75%' } });
+  scale.classList.add('is-live');
+  scaleTl.fromTo('.scale-fill', { '--p': 0 }, { '--p': 1, duration: 2.2, ease: 'power2.inOut' }, 0);
+  scale.querySelectorAll('.scale-stop').forEach((stop, i) => {
+    scaleTl.call(() => stop.classList.add('is-on'), null, .15 + i * .8)
+      .from(stop.querySelector('.scale-body'), { autoAlpha: 0, y: 18, duration: 1, ease: 'expo.out' }, .15 + i * .8);
+  });
+
+  // Starting point: baseline hairlines draw, the amber redline draws over them, then the cloud and marker land.
+  gsap.timeline({ scrollTrigger: { trigger: '.redline', start: 'top 80%', end: 'center 40%', scrub: 1 } })
+    .fromTo('.rl-draw', { strokeDashoffset: 1, strokeDasharray: 1 }, { strokeDashoffset: 0, ease: 'none', stagger: .08, duration: .5 })
+    .from('.rl-fade', { autoAlpha: 0, duration: .3, stagger: .03 }, '-=.3')
+    .fromTo('.rl-draw-b', { strokeDashoffset: 1, strokeDasharray: 1 }, { strokeDashoffset: 0, ease: 'none', stagger: .1, duration: .5 })
+    .from('.rl-fade-b', { autoAlpha: 0, duration: .3, stagger: .05 }, '-=.2')
+    .from('.rl-cloud', { autoAlpha: 0, scale: .7, svgOrigin: '300 118', duration: .35, ease: 'back.out(2)' })
+    .from('.rl-mark', { autoAlpha: 0, scale: .4, svgOrigin: '392 72', duration: .3, ease: 'back.out(3)' }, '-=.1')
+    .from('.redline-caption', { autoAlpha: 0, y: 8, duration: .3 });
 
   // Scenario table rows.
   gsap.from('.param-table tbody tr', { autoAlpha: 0, y: 16, duration: .8, ease: 'power3.out', stagger: .07, scrollTrigger: { trigger: '.param-table', start: 'top 80%' } });
 
   const mm = gsap.matchMedia();
   mm.add('(min-width: 861px)', () => {
-    // Baseline to proposed wipe, scrubbed with scroll.
-    gsap.timeline({ scrollTrigger: { trigger: '.compare-frame', start: 'top 80%', end: 'bottom 40%', scrub: 1 } })
-      .fromTo('.pane-b', { clipPath: 'inset(0 0 0 92%)' }, { clipPath: 'inset(0 0 0 50%)', ease: 'none' }, 0)
-      .fromTo('.compare-divider', { left: '92%' }, { left: '50%', ease: 'none' }, 0)
-      .from('.change-callout', { autoAlpha: 0, y: 10, duration: .2 }, .8);
-
     // Digest document settles flat as it arrives.
     gsap.fromTo('.digest-doc', { rotateX: 16, rotateZ: -2, y: 80, transformPerspective: 1200 }, {
       rotateX: 0, rotateZ: 0, y: 0, ease: 'none',
       scrollTrigger: { trigger: '.digest-doc', start: 'top 95%', end: 'center 55%', scrub: 1 }
-    });
-
-    // Method: pinned horizontal track.
-    const list = document.querySelector('.method-list');
-    const distance = () => Math.max(0, list.scrollWidth - document.querySelector('.method-track').clientWidth + 40);
-    gsap.timeline({
-      scrollTrigger: { trigger: '.method', start: 'top top', end: () => '+=' + distance(), pin: true, scrub: 1, invalidateOnRefresh: true, anticipatePin: 1 }
-    })
-      .to(list, { x: () => -distance(), ease: 'none' }, 0)
-      .to('.method-progress span', { scaleX: 1, ease: 'none' }, 0);
-
-    // Engagement cards rise at slightly different speeds.
-    gsap.utils.toArray('.eng-card').forEach((card, i) => {
-      gsap.to(card, { y: -24 * (i + 1) / 3, ease: 'none', scrollTrigger: { trigger: '.eng-grid', start: 'top bottom', end: 'bottom top', scrub: true } });
-    });
-  });
-  mm.add('(max-width: 860px)', () => {
-    gsap.set('.pane-b', { clipPath: 'inset(0 0 0 50%)' });
-    gsap.utils.toArray('.stage').forEach(stage => {
-      gsap.from(stage, { y: 40, autoAlpha: 0, duration: 1, ease: 'expo.out', scrollTrigger: { trigger: stage, start: 'top 90%' } });
     });
   });
 

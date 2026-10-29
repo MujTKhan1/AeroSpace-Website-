@@ -23,14 +23,26 @@ Reference image: documentation/satellite-kit-reference.png, from the same NASA r
 
 Static illustrations: dist/assets/satellite-fallback.svg (baseline, Rev A) and dist/assets/satellite-proposed.svg (proposed, Rev B) are locally authored schematic illustrations of the assembled concept, used for the same-camera comparison, the digest thumbnail and the contact section. In the hero, the assembly (body 3, wings 2, radio 2) is shown small on an orbit around a procedurally generated dotted globe. Reduced motion renders a still frame; if WebGL is unavailable a CSS globe is shown.
 
+## NASA Juno 3D model — Capabilities panel
+
+Source: https://science.nasa.gov/resource/juno-3d-model/ (direct file: https://assets.science.nasa.gov/content/dam/science/psd/solar/2023/09/j/Juno.glb, glTF dated Sep 9, 2023)
+
+Source credit: NASA Visualization Technology Applications and Development (VTAD), as stated on the NASA page. Usage follows the NASA Images and Media Usage Guidelines linked from that page (https://www.nasa.gov/nasa-brand-center/images-and-media/): NASA media is generally not subject to copyright in the United States, may be used for informational purposes, and must not imply NASA endorsement. No NASA logo, insignia or endorsement is used.
+
+| Original file | Local file | Role | Modifications |
+|---|---|---|---|
+| Juno.glb (9,185,648 bytes) | dist/assets/juno/Juno.glb | Interactive, drag-to-rotate model in the Capabilities sticky panel (dist/juno.js) | None. The file is served unmodified. Compression with glTF-Transform was planned but not run in this pass; the model is lazy-loaded only when the panel nears the viewport. |
+
+Presentation: the client brief treats Juno as an engineering reference only. It is not presented as a generic commercial satellite or as a Mission Beacon project, and the panel shows the always-visible caption "NASA Juno spacecraft model · Credit: NASA VTAD · Engineering reference only, not a Mission Beacon project". Lighting is a neutral studio setup (Three.js RoomEnvironment plus key, fill and rim lights) with a transparent background over the panel. Zoom and pan are disabled, so page scrolling is never captured. Vertical touch drags scroll the page and horizontal drags rotate the model. Reduced motion shows a still frame with no auto-rotation. If WebGL or loading fails, the locally authored dist/assets/satellite-fallback.svg is shown instead. The panel is hidden below 861px wide, so phones do not download the model.
+
 ## Locally authored materials and lighting
 
 Solar-cell texture, foil texture, environment map, radiator, reflector refinements and structural fittings are created procedurally in dist/scene.js. The hero globe, stars and orbit rings are generated procedurally in dist/space.js. No external HDRI, stock texture, AI-generated raster image, or mission-specific spacecraft identity is used. Lighting is neutral studio illumination.
 
 ## Type and runtime assets
 
-- Geist and Geist Mono (Vercel) and Instrument Serif: @fontsource npm distributions; SIL Open Font License. Local woff2 files are served from dist/assets/fonts/. DM Sans and Space Grotesk files from the previous hero remain in dist/assets/ but are no longer referenced.
-- Three.js 0.170.0, GLTFLoader, DRACOLoader and BufferGeometryUtils: official Three.js distribution; MIT licence.
+- Space Grotesk (400, 500) and DM Sans (400, 500, 600): SIL Open Font License; local TTF files served from dist/assets/ (font-5/6 and font-1/2/3). Geist Mono (Vercel, 400 and 500): @fontsource npm distribution; SIL Open Font License; local woff2 files served from dist/assets/fonts/.
+- Three.js 0.170.0, GLTFLoader, DRACOLoader, BufferGeometryUtils, OrbitControls and RoomEnvironment: official Three.js distribution (the addons are from the three@0.170.0 npm package, with their `three` import rewritten to the local ./three.module.js); MIT licence.
 - Draco decoder: distributed with Three.js, upstream Google Draco; Apache 2.0 licence.
 - GSAP 3.12.5 and ScrollTrigger 3.12.5: official npm distribution; original licence headers retained.
 - Lenis 1.1.13 (smooth scrolling): npm distribution; MIT licence.

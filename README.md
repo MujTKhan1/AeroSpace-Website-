@@ -12,7 +12,7 @@ Hero, the engineering-to-regulatory gap, four capabilities, baseline vs proposed
 
 ## Typography
 
-Geist (body and headings), Instrument Serif italic (accent phrases) and Geist Mono (labels and technical metadata). All three are SIL OFL fonts, self-hosted from `dist/assets/fonts/`.
+Space Grotesk (headings, numbers and the wordmark), DM Sans (body text) and Geist Mono (labels and technical metadata). All three are SIL OFL fonts, self-hosted: Space Grotesk and DM Sans from `dist/assets/font-*.ttf`, Geist Mono from `dist/assets/fonts/`. Heading accents change colour, not typeface.
 
 ## Motion
 
