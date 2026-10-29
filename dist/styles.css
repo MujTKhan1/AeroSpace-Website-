@@ -254,13 +254,16 @@ h3 { font-family: var(--display); font-weight: 500; letter-spacing: -.02em; }
 .doc-foot { margin: 20px 0 0; color: var(--faint); font-size: 10px; }
 
 /* Audiences */
-.aud-table { border-top: 1px solid var(--ink); }
-.aud-row { display: grid; grid-template-columns: minmax(200px, 1fr) 60px 1.6fr; align-items: baseline; gap: 20px; padding: 28px 0; border-bottom: 1px solid var(--line-strong); transition: padding .4s var(--ease); }
+/* Each row draws its own top hairline (--line, animated by JS); clipping keeps the slide-ins from widening the page. */
+.aud-table { overflow: hidden; border-bottom: 1px solid var(--line-strong); }
+.aud-row { position: relative; display: grid; grid-template-columns: minmax(200px, 1fr) 60px 1.6fr; align-items: baseline; gap: 20px; padding: 28px 0; }
+.aud-row::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--line-strong); transform-origin: left; transform: scaleX(var(--line, 1)); }
+.aud-row:first-child::before { background: var(--ink); }
 .aud-who { font-family: var(--display); font-weight: 500; font-size: clamp(22px, 2.2vw, 30px); letter-spacing: -.02em; }
-.aud-arrow { color: var(--cyan); font-size: 20px; transition: transform .4s var(--ease); }
-.aud-need { font-family: var(--display); letter-spacing: -.02em; font-size: clamp(22px, 2.2vw, 30px); color: var(--muted); }
-.aud-row:hover { padding-left: 14px; }
+.aud-arrow { display: inline-block; color: var(--cyan); font-size: 20px; transition: transform .4s var(--ease); }
+.aud-need { font-family: var(--display); letter-spacing: -.02em; font-size: clamp(22px, 2.2vw, 30px); color: var(--muted); transition: color .3s; }
 .aud-row:hover .aud-arrow { transform: translateX(8px); }
+.aud-row:hover .aud-need { color: var(--ink-2); }
 
 /* Method: vertical timeline, alternating sides on desktop */
 .timeline { position: relative; }

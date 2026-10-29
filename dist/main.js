@@ -132,10 +132,14 @@
   gsap.utils.toArray('.reveal').forEach(el => {
     gsap.from(el, { y: 30, autoAlpha: 0, duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 88%' } });
   });
-  ScrollTrigger.batch('.reveal-row', {
-    start: 'top 92%',
-    onEnter: batch => gsap.from(batch, { x: -30, autoAlpha: 0, duration: 1, ease: 'expo.out', stagger: .08 }),
-    once: true
+  // Audiences: each row's hairline draws, then the role slides in from the left and the need from the right.
+  const audTl = gsap.timeline({ scrollTrigger: { trigger: '.aud-table', start: 'top 80%', once: true } });
+  gsap.utils.toArray('.aud-row').forEach((row, i) => {
+    const at = i * .12;
+    audTl.fromTo(row, { '--line': 0 }, { '--line': 1, duration: 1, ease: 'expo.out' }, at)
+      .from(row.querySelector('.aud-who'), { x: -60, autoAlpha: 0, duration: 1, ease: 'expo.out' }, at + .12)
+      .from(row.querySelector('.aud-need'), { x: 60, autoAlpha: 0, duration: 1, ease: 'expo.out' }, at + .18)
+      .from(row.querySelector('.aud-arrow'), { scale: 0, autoAlpha: 0, duration: .6, ease: 'back.out(3)', clearProps: 'transform' }, at + .3);
   });
 
   // Gap: the engineering record draws from Rev A to Rev B with scroll; the regulatory record stays at Rev A.
