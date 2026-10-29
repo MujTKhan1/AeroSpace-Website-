@@ -295,7 +295,7 @@
       </section>
 
       <!-- 07 Audiences -->
-      <section class="section audiences" aria-labelledby="aud-title">
+      <section class="section audiences" id="audiences" aria-labelledby="aud-title">
         <div class="container">
           <div class="section-head">
             <p class="eyebrow mono"><span>06</span>Who it serves</p>
@@ -435,18 +435,64 @@
   </main>
 
   <footer class="site-footer">
-    <div class="container footer-grid">
-      <div>
-        <a class="brand brand-footer" href="#top"><span>Mission Beacon</span></a>
-        <p class="footer-tag">Engineering evidence for regulatory decisions.</p>
+    <div class="container">
+      <!-- Notes sign-up band. No endpoint is connected yet. -->
+      <section class="notify" aria-labelledby="notify-title">
+        <span class="notify-streak" aria-hidden="true"></span>
+        <div class="notify-copy">
+          <h2 id="notify-title" class="notify-title">Technical notes, <em>when they're published.</em></h2>
+          <p>Source-led notes on engineering change control, classification evidence and pre-filing preparation. No spam, no shared lists.</p>
+        </div>
+        <form class="notify-form" id="notify-form" novalidate>
+          <label class="sr-only" for="notify-email">Work email</label>
+          <div class="notify-field">
+            <input id="notify-email" name="email" type="email" autocomplete="email" placeholder="Work email" required>
+            <button class="notify-btn" type="submit">Notify me</button>
+          </div>
+          <p class="notify-status" id="notify-status" role="status"></p>
+        </form>
+      </section>
+
+      <div class="foot-card">
+        <div class="foot-cols">
+          <nav class="foot-col" aria-labelledby="foot-cap">
+            <p class="foot-head mono" id="foot-cap">Capabilities</p>
+            <ul>
+              <li><a href="#capabilities">Engineering Change Regulatory Impact</a></li>
+              <li><a href="#capabilities">Export Jurisdiction and Classification</a></li>
+              <li><a href="#capabilities">Pre-Filing Regulatory Package</a></li>
+              <li><a href="#capabilities">Milestone Compliance Readiness</a></li>
+            </ul>
+          </nav>
+          <nav class="foot-col" aria-labelledby="foot-approach">
+            <p class="foot-head mono" id="foot-approach">Approach</p>
+            <ul>
+              <li><a href="#method">Method</a></li>
+              <li><a href="#principles">Principles</a></li>
+              <li><a href="#engagement">Engagement</a></li>
+            </ul>
+          </nav>
+          <nav class="foot-col" aria-labelledby="foot-company">
+            <p class="foot-head mono" id="foot-company">Company</p>
+            <ul>
+              <li><a href="#audiences">Who we serve</a></li>
+              <li><a href="#contact">Contact</a></li>
+            </ul>
+          </nav>
+          <div class="foot-col">
+            <p class="foot-head mono">Get in touch</p>
+            <a class="btn btn-dark foot-cta" href="#contact">Discuss a technical change <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+        <div class="foot-legal">
+          <p>Mission Beacon provides aerospace technical-regulatory intelligence and advisory services. Technical intelligence does not replace legal or agency authority: formal legal interpretation, classification decisions, licensing submissions and agency approvals remain with the authorised parties.</p>
+          <p>Satellite illustrations are an illustrative assembly based on NASA/Ames Research Center Satellite Kit geometry. <a href="https://science.nasa.gov/3d-resources/satellite-kit/" target="_blank" rel="noopener noreferrer">Source ↗</a> The Juno spacecraft model is credited to NASA Visualization Technology Applications and Development (VTAD) and shown as an engineering reference only. <a href="https://science.nasa.gov/resource/juno-3d-model/" target="_blank" rel="noopener noreferrer">Source ↗</a> NASA does not endorse Mission Beacon.</p>
+        </div>
+        <p class="foot-fine mono">© 2026 Mission Beacon</p>
+        <div class="foot-mark" aria-hidden="true">
+          <div class="foot-mark-inner"><svg viewBox="0 0 1000 74"><text x="0" y="86" textLength="1000" lengthAdjust="spacingAndGlyphs">MISSION BEACON</text></svg></div>
+        </div>
       </div>
-      <nav class="footer-nav mono" aria-label="Footer navigation">
-        <a href="#capabilities">Capabilities</a><a href="#method">Method</a><a href="#principles">Company</a><a href="#contact">Contact</a>
-      </nav>
-    </div>
-    <div class="container footer-legal">
-      <p>Mission Beacon provides aerospace technical-regulatory intelligence and advisory services. Technical intelligence does not replace legal or agency authority: formal legal interpretation, classification decisions, licensing submissions and agency approvals remain with the authorised parties.</p>
-      <p>Satellite imagery is an illustrative assembly based on NASA/Ames Research Center Satellite Kit geometry. NASA does not endorse Mission Beacon. <a href="https://science.nasa.gov/3d-resources/satellite-kit/" target="_blank" rel="noopener noreferrer">Source ↗</a></p>
     </div>
   </footer>
 </body>

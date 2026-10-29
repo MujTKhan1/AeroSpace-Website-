@@ -33,10 +33,12 @@
     const link = e.target.closest('a[href^="#"]');
     if (!link) return;
     const id = link.getAttribute('href');
-    const target = id === '#top' ? 0 : document.querySelector(id);
+    let target = id === '#top' ? 0 : document.querySelector(id);
     if (target === null) return;
     e.preventDefault();
     setMenu(false);
+    // A pinned section is position: fixed; scroll to its spacer, which keeps its place in the page.
+    if (target && target.parentElement.classList.contains('pin-spacer')) target = target.parentElement;
     if (lenis) lenis.scrollTo(target, { offset: id === '#top' ? 0 : -40, duration: 1.4 });
     else if (target === 0) window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
     else target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
@@ -64,6 +66,19 @@
     status.textContent = 'Thank you. This preview is not yet connected to an inquiry service, so nothing has been sent.';
   });
   form.addEventListener('input', e => { if (e.target.getAttribute('aria-invalid') === 'true' && e.target.checkValidity()) e.target.removeAttribute('aria-invalid'); });
+
+  // ---------- Footer notes sign-up (no endpoint is connected yet) ----------
+  const notify = document.getElementById('notify-form');
+  const notifyStatus = document.getElementById('notify-status');
+  notify.addEventListener('submit', e => {
+    e.preventDefault();
+    const email = notify.elements.email;
+    const ok = email.value.trim() !== '' && email.checkValidity();
+    email.setAttribute('aria-invalid', String(!ok));
+    notifyStatus.className = ok ? 'notify-status' : 'notify-status is-error';
+    notifyStatus.textContent = ok ? "Thanks. Sign-up isn't connected yet, so nothing was sent." : 'Please enter a valid work email.';
+    if (!ok) email.focus();
+  });
 
   // ---------- Header (always dark; it only compacts once scrolled) ----------
   function updateHeader() { header.classList.toggle('is-scrolled', scrollY > 20); }
@@ -224,10 +239,33 @@
       rotateX: 0, rotateZ: 0, y: 0, ease: 'none',
       scrollTrigger: { trigger: '.digest-doc', start: 'top 95%', end: 'center 55%', scrub: 1 }
     });
+
+    // Footer slides over the last section like a sheet: contact holds by its bottom edge (so its Send
+    // button stays reachable), then recedes and dims beneath the footer. Phones scroll normally.
+    gsap.timeline({
+      scrollTrigger: { trigger: '.contact', start: 'bottom bottom', end: 'max', pin: true, pinSpacing: false, scrub: true, invalidateOnRefresh: true }
+    }).to('.contact', { '--dim': .45, scale: .94, transformOrigin: '50% 100%', ease: 'none' });
+
+    // Footer wordmark drifts a little with the pointer.
+    const card = document.querySelector('.foot-card');
+    const markX = gsap.quickTo('.foot-mark svg', 'x', { duration: .8, ease: 'power3.out' });
+    const onMove = e => { const r = card.getBoundingClientRect(); markX(((e.clientX - r.left) / r.width - .5) * -36); };
+    const onLeave = () => markX(0);
+    card.addEventListener('pointermove', onMove);
+    card.addEventListener('pointerleave', onLeave);
+    return () => { card.removeEventListener('pointermove', onMove); card.removeEventListener('pointerleave', onLeave); };
   });
 
   // Contact satellite drifts gently.
   gsap.to('.contact-sat', { y: -40, rotate: -3, ease: 'none', scrollTrigger: { trigger: '.contact', start: 'top bottom', end: 'bottom top', scrub: true } });
+
+  // Footer: the band rises, link columns stagger in, and the wordmark rises with scroll.
+  gsap.from('.notify', { y: 60, autoAlpha: 0, duration: 1.2, ease: 'expo.out', scrollTrigger: { trigger: '.notify', start: 'top 88%' } });
+  gsap.from('.foot-col', { y: 24, autoAlpha: 0, duration: 1, ease: 'expo.out', stagger: .08, scrollTrigger: { trigger: '.foot-cols', start: 'top 88%' } });
+  gsap.fromTo('.foot-mark-inner', { yPercent: 55, autoAlpha: 0 }, {
+    yPercent: 0, autoAlpha: 1, ease: 'none',
+    scrollTrigger: { trigger: '.foot-card', start: 'top bottom', end: 'clamp(bottom bottom)', scrub: true }
+  });
 
   addEventListener('load', () => ScrollTrigger.refresh());
 })();
