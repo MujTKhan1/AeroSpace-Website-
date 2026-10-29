@@ -1,34 +1,37 @@
-# Mission Beacon — hero concept
+# Mission Beacon — landing page
 
-A hero-only aerospace design based on the client's Website Architecture and 3D Direction brief. Off-white editorial typography, a navy studio backdrop and restrained amber details frame one modular, interactive satellite.
+A single-page landing site built from the client's Website Architecture and 3D Direction brief. The hero is a dark space scene (dotted globe, atmosphere, orbit rings and the illustrative NASA Satellite Kit assembly on orbit). Everything below the hero is a light, editorial layout focused on the regulatory services.
 
 ## Run locally
 
-Run `npm run dev`, then open http://127.0.0.1:4173/ . There is no build step or dependency installation. The deployable site is in `dist/` and all fonts, models, libraries and decoders are served locally.
+Run `npm run dev`, then open http://127.0.0.1:4173/ . There is no build step or dependency installation. The deployable site is in `dist/` and all fonts, models and libraries are served locally.
 
-## Hero interactions
+## Page structure
 
-- GSAP reveals the heading and introductory copy.
-- Baseline and Proposed change buttons select two illustrative communications-module configurations on the same spacecraft assembly.
-- Mouse drag or the Rotate view button changes the model's orientation.
-- Pause stops automatic model motion. Reduced-motion preferences disable automatic movement and entrance animation.
-- A matching static SVG is available when WebGL or model loading fails.
-- Navigation opens concise prototype panels; no additional site pages are built.
-- The high-level briefing form downloads a local note. It does not send an inquiry or store user submissions.
+Hero, the engineering-to-regulatory gap, four capabilities, baseline vs proposed (Rev A / Rev B), illustrative communications scenario, sample Regulatory Impact Assessment Digest (marked demo data), audiences, the six-stage method, principles, engagement models and the contact form with the information-security notice. Copy is taken from the client's Home, Capabilities, Method, Company and Contact tabs.
 
-## Source and requirements
+## Typography
 
-The hero communicates technical-regulatory intelligence and advisory support for qualified human reviewers. It makes no agency, NASA partnership, autonomous compliance, legal-determination or approval claim.
+Geist (body and headings), Instrument Serif italic (accent phrases) and Geist Mono (labels and technical metadata). All three are SIL OFL fonts, self-hosted from `dist/assets/fonts/`.
 
-NASA/Ames Satellite Kit parts were inspected and assembled for the hero. Source credits, original file names, usage notes, modifications and fallbacks are recorded in [ASSET-REGISTER.md](ASSET-REGISTER.md). The original source-asset reference image is retained under `documentation/` and is not used as the hero image.
+## Motion
+
+- Lenis smooth scrolling, synchronised with GSAP ScrollTrigger.
+- Hero entrance with masked line reveals; the light page slides up over the pinned hero while the globe zooms and dims.
+- Word-by-word heading reveals, staggered card and row reveals.
+- The gap connector draws in and breaks; the Rev A / Rev B view wipes with scroll; the digest document settles flat; the method stages scroll horizontally in a pinned section on desktop.
+- `prefers-reduced-motion` turns off smooth scrolling, scroll animations and automatic 3D motion. A CSS globe is shown if WebGL is unavailable.
+
+## Contact form
+
+The form validates required fields in the browser but is not connected to an inquiry service. It tells the visitor that nothing was sent. Connect a server endpoint with server-side validation, spam protection and the approved privacy notice before launch.
 
 ## Key files
 
-- `dist/index.html` — hero, selectable HTML labels and prototype panels
-- `dist/hero.css` — editorial composition and responsive styles
-- `dist/app.js` — GSAP entrance, panels and briefing-note download
-- `dist/scene.js` — studio lighting, spacecraft assembly and configuration interaction
+- `dist/index.html` — page markup and copy
+- `dist/styles.css` — design tokens, layout and responsive styles
+- `dist/main.js` — Lenis, GSAP ScrollTrigger animations, navigation and form
+- `dist/space.js` — Three.js hero scene
 - `dist/assets/satellite-kit/` — selected modular GLB parts
-- `dist/assets/licenses/` — local licence files
 
-`npm run check` verifies application JavaScript syntax. Desktop, phone, configuration switching and navigation are also checked in the browser.
+Sources, licences and modifications are recorded in [ASSET-REGISTER.md](ASSET-REGISTER.md). `npm run check` verifies JavaScript syntax.

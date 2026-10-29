@@ -33,8 +33,14 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 DM Sans: https://github.com/googlefonts/dm-fonts — SIL Open Font License 1.1.
 Space Grotesk: https://github.com/floriankarsten/space-grotesk — SIL Open Font License 1.1.
+Geist and Geist Mono: https://github.com/vercel/geist-font — SIL Open Font License 1.1 (licenses/Geist-OFL.txt).
+Instrument Serif: https://github.com/Instrument/instrument-serif — SIL Open Font License 1.1 (licenses/Instrument-Serif-OFL.txt).
 
 ## GSAP
 
-GSAP 3.12.5. Copyright 2024 GreenSock. Original copyright/licence header is retained in gsap.min.js.
+GSAP 3.12.5 and ScrollTrigger 3.12.5. Copyright 2024 GreenSock. Original copyright/licence headers are retained in gsap.min.js and ScrollTrigger.min.js.
 https://gsap.com/standard-license/
+
+## Lenis
+
+Lenis 1.1.13, https://github.com/darkroomengineering/lenis — MIT licence (licenses/Lenis-MIT.txt).
