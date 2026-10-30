@@ -8,7 +8,7 @@ Run `npm run dev`, then open http://127.0.0.1:4173/ . There is no build step or 
 
 ## Page structure
 
-Hero, engineering-to-regulatory gap, four interactive capabilities, baseline/proposed antenna assembly, illustrative evidence package, communications record dependencies, audiences, six-stage method, principles, engagement models and contact. The page prepares evidence and questions for authorised human reviewers; it does not make legal, classification or agency determinations.
+Hero, engineering-to-regulatory gap, four interactive capabilities, baseline/proposed antenna assembly, illustrative evidence package, communications record dependencies, audiences, six-stage method, principles and contact. The page prepares evidence and questions for authorised human reviewers; it does not make legal, classification or agency determinations.
 
 ## Typography
 

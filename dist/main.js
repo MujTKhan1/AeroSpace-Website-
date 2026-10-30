@@ -190,16 +190,6 @@
     .from('.principle-rule', { scale: 0, transformOrigin: 'top left', duration: 1.2, ease: 'expo.inOut' })
     .from('.plain-list li', { autoAlpha: 0, y: 14, duration: .9, ease: 'expo.out', stagger: .06 }, .3);
 
-  // Engagement: the scale fills and each stop lights in turn.
-  const scale = document.querySelector('.scale');
-  const scaleTl = gsap.timeline({ scrollTrigger: { trigger: scale, start: 'top 75%' } });
-  scale.classList.add('is-live');
-  scaleTl.fromTo('.scale-fill', { '--p': 0 }, { '--p': 1, duration: 2.2, ease: 'power2.inOut' }, 0);
-  scale.querySelectorAll('.scale-stop').forEach((stop, i) => {
-    scaleTl.call(() => stop.classList.add('is-on'), null, .15 + i * .8)
-      .from(stop.querySelector('.scale-body'), { autoAlpha: 0, y: 18, duration: 1, ease: 'expo.out' }, .15 + i * .8);
-  });
-
   const mm = gsap.matchMedia();
   mm.add('(min-width: 861px)', () => {
     // Footer slides over the last section like a sheet: contact holds by its bottom edge (so its Send

@@ -7,7 +7,10 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const shared = (window.__beacon ||= { hero: 0 });
 const state = { paused: reduced.matches, discipline: 0, explosion: 0, revision: 1, signal: 1, antennaVisible: true };
 const scenes = [];
-let modelPromise;
+const JUNO_DISPLAY_SCALE = .9;
+// Widest the normalised Juno gets at any rotation; narrow stages keep this 5% side margin however it is turned.
+const JUNO_ROTATED_SPAN = 1.28, JUNO_SIDE_MARGIN = .05;
+let modelPromise, recordsTimeline;
 function loadSpacecraft() {
   if (!modelPromise) {
     const draco = new DRACOLoader().setDecoderPath(new URL('./assets/draco/', import.meta.url).href);
@@ -67,7 +70,7 @@ async function createExhibit(stage) {
     const camera = new THREE.OrthographicCamera(-6, 6, 3, -3, .1, 100);
     camera.position.set(0, 4, 12); camera.lookAt(0, 0, 0);
     const source = await loadSpacecraft();
-    let subject, ghost, rings, paths = [], pulses = [], dishes = [];
+    let subject, ghost, rings, paths = [], pulses = [], dishes = [], fades = [];
     const type = stage.dataset.model;
     if (type === 'spacecraft') {
       const model = source.clone(true);
@@ -87,7 +90,16 @@ async function createExhibit(stage) {
         mesh.material = new THREE.MeshStandardMaterial({ color: 0x9ba6ad, transparent: true, opacity: .14, roughness: .8, depthWrite: false });
         const edges = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, 32), new THREE.LineBasicMaterial({ color: 0x80929d, transparent: true, opacity: .24 })); mesh.add(edges);
       });
-      subject.traverse(mesh => { if (mesh.isMesh && /^dish_/.test(mesh.name)) mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, 45), new THREE.LineBasicMaterial({ color: 0xc48b3f, transparent: true, opacity: .5 }))); });
+      subject.traverse(mesh => {
+        if (!mesh.isMesh) return;
+        // Rev B fades in on its own material copies, so the other exhibits sharing NASA's materials are untouched.
+        mesh.material = mesh.material.clone();
+        fades.push({ material: mesh.material, opacity: mesh.material.opacity, transparent: mesh.material.transparent });
+        if (!/^dish_/.test(mesh.name)) return;
+        const edge = new THREE.LineBasicMaterial({ color: 0xc48b3f, transparent: true, opacity: .5 });
+        fades.push({ material: edge, opacity: .5, transparent: true });
+        mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, 45), edge));
+      });
     } else {
       subject = antennaFrom(source); scene.add(subject);
     }
@@ -103,7 +115,7 @@ async function createExhibit(stage) {
       renderer.setSize(width, height, false);
       const aspect = width / height; viewWidth = aspect * 6;
       camera.left = -viewWidth / 2; camera.right = viewWidth / 2; camera.updateProjectionMatrix();
-      if (type === 'spacecraft') subject.scale.setScalar(Math.min(viewWidth * (innerWidth < 581 ? .82 : 1.02), 10.8));
+      if (type === 'spacecraft') subject.scale.setScalar(Math.min(Math.min(viewWidth * (innerWidth < 581 ? .82 : 1.02), 10.8) * JUNO_DISPLAY_SCALE, viewWidth * (1 - JUNO_SIDE_MARGIN * 2) / JUNO_ROTATED_SPAN));
       if (type === 'antenna') { subject.scale.setScalar(Math.min(viewWidth * .57, 3.8)); ghost.scale.setScalar(Math.min(viewWidth * .47, 3.1)); }
       if (type === 'signal') {
         const phone = innerWidth < 581;
@@ -111,6 +123,9 @@ async function createExhibit(stage) {
         clearPaths();
         if (!phone) {
           const start = new THREE.Vector3(-viewWidth * .27, .3, .4);
+          // The connectors end at the assembled records, so measure them there and put the scroll state back.
+          const progress = recordsTimeline?.progress();
+          recordsTimeline?.progress(1, true);
           document.querySelectorAll('.record-sheet').forEach((sheet, i) => {
             const r = sheet.getBoundingClientRect();
             const x = ((r.left + r.width * .12 - rect.left) / width - .5) * viewWidth;
@@ -125,6 +140,7 @@ async function createExhibit(stage) {
             const line = new THREE.Mesh(new THREE.TubeGeometry(curve, 70, .008, 5, false), mat); line.userData.curve = curve; paths.push(line); scene.add(line);
             const pulse = new THREE.Mesh(new THREE.SphereGeometry(.035, 10, 10), new THREE.MeshBasicMaterial({ color: i === 0 ? 0xffc586 : 0x9edcf0 })); pulses.push(pulse); scene.add(pulse);
           });
+          recordsTimeline?.progress(progress, true);
         }
       }
       draw();
@@ -139,6 +155,12 @@ async function createExhibit(stage) {
         subject.position.set(.65 + state.revision * .2, -.12, .25);
         subject.rotation.y = -.48 + Math.sin(time * .15) * .025;
         subject.visible = state.revision > .02;
+        const reveal = THREE.MathUtils.smoothstep(state.revision, .02, .55);
+        fades.forEach(fade => {
+          const transparent = fade.transparent || reveal < 1;
+          if (fade.material.transparent !== transparent) { fade.material.transparent = transparent; fade.material.needsUpdate = true; }
+          fade.material.opacity = fade.opacity * reveal;
+        });
         ghost.position.set(-1.4 * state.revision, .4 * state.revision, -.7);
         ghost.rotation.y = -.48;
         ghost.traverse(mesh => { if (mesh.isMesh) mesh.material.opacity = 1 - state.revision * .88; });
@@ -207,12 +229,17 @@ disciplines.forEach((button, i) => button.addEventListener('click', () => {
   if (window.gsap && !reduced.matches) gsap.fromTo(state, { explosion: 0 }, { explosion: .55, duration: .7, repeat: 1, yoyo: true, ease: 'power2.inOut', onUpdate: refreshScenes });
   refreshScenes();
 }));
-document.querySelectorAll('[data-revision]').forEach(button => button.addEventListener('click', () => {
-  document.querySelectorAll('[data-revision]').forEach(item => { const active = item === button; item.classList.toggle('is-active', active); item.setAttribute('aria-pressed', String(active)); });
-  const revision = button.dataset.revision === 'proposed' ? 1 : 0;
-  if (window.gsap && !reduced.matches) gsap.to(state, { revision, duration: .7, ease: 'power2.inOut', onUpdate: refreshScenes });
-  else { state.revision = revision; refreshScenes(); }
-}));
+// Scroll owns the revision: the Rev A / Rev B indicator only reports where the animation has reached.
+const revisionSteps = [...document.querySelectorAll('[data-revision]')];
+function syncRevision() {
+  const proposed = state.revision >= .5;
+  revisionSteps.forEach(step => {
+    const active = (step.dataset.revision === 'proposed') === proposed;
+    step.classList.toggle('is-active', active);
+    if (active) step.setAttribute('aria-current', 'step'); else step.removeAttribute('aria-current');
+  });
+  refreshScenes();
+}
 
 function scrollToPosition(top) {
   if (shared.lenis) shared.lenis.scrollTo(top, { duration: 1.5, offset: 0 });
@@ -247,44 +274,63 @@ methodButtons.forEach((button, i) => button.addEventListener('click', () => {
 function setupMotion() {
   if (!window.gsap || !window.ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
+  // A refresh restores saved progress silently at its end, so bring the indicator back in line afterwards.
+  ScrollTrigger.addEventListener('refresh', () => setTimeout(syncRevision, 0));
   const media = gsap.matchMedia();
   media.add('(prefers-reduced-motion: no-preference)', () => {
     gsap.fromTo(state, { explosion: 0 }, { explosion: .85, ease: 'none', onUpdate: refreshScenes, scrollTrigger: { trigger: '.spacecraft-exhibit', start: 'top 78%', end: 'bottom 30%', scrub: .8 } });
     gsap.from('.specimen-label', { opacity: 0, duration: 1.1, stagger: .15, scrollTrigger: { trigger: '.spacecraft-exhibit', start: 'top 65%' } });
     gsap.from('.discipline', { opacity: 0, duration: .9, stagger: .1, scrollTrigger: { trigger: '.discipline-grid', start: 'top 88%' } });
-    gsap.fromTo(state, { signal: 0 }, { signal: 1, ease: 'none', onUpdate: refreshScenes, scrollTrigger: { trigger: '.signal-diagram', start: 'top 80%', end: 'center 40%', scrub: .7, onRefresh: () => scenes.forEach(scene => scene.layout()) } });
-    gsap.from('.record-sheet', { opacity: 0, rotationY: -65, x: 45, duration: 1.1, stagger: .2, ease: 'power3.out', scrollTrigger: { trigger: '.signal-diagram', start: 'top 60%' } });
+    // One scrubbed timeline for the records and connectors: it finishes with the diagram on screen, leaves
+    // them assembled while the section is read, and runs backwards and forwards on every pass.
+    recordsTimeline = gsap.timeline({ onUpdate: refreshScenes, scrollTrigger: { trigger: '.signal-diagram', start: 'top 85%', end: 'center 52%', scrub: .7, onRefresh: () => scenes.forEach(scene => scene.layout()) } })
+      .from('.record-sheet', { opacity: 0, rotationY: -65, x: 45, duration: .62, stagger: .19, ease: 'power3.out' }, 0)
+      .fromTo(state, { signal: 0 }, { signal: 1, duration: 1, ease: 'none' }, 0);
+    return () => { recordsTimeline = undefined; state.signal = 1; refreshScenes(); };
+  });
+  // Phones and tablets have no pin, so the revision change plays as the illustration crosses the screen.
+  media.add('(max-width: 899px) and (prefers-reduced-motion: no-preference)', () => {
+    gsap.fromTo(state, { revision: 0 }, { revision: 1, ease: 'none', onUpdate: syncRevision, scrollTrigger: { trigger: '.antenna-exhibit', start: 'top 72%', end: 'bottom 48%', scrub: .6 } });
+    syncRevision();
+    return () => { state.revision = 1; syncRevision(); };
   });
   media.add('(min-width: 900px) and (prefers-reduced-motion: no-preference)', () => {
     const stage = document.querySelector('.chapter-stage'); stage.classList.add('is-cinematic');
     const evidence = document.querySelector('.evidence-panel');
     gsap.set(evidence, { autoAlpha: 0 }); evidence.inert = true;
     gsap.set('.scene-back', { autoAlpha: 0 });
-    const sequence = gsap.timeline({ scrollTrigger: {
-      trigger: '.change-story', start: 'top 64px', end: () => `+=${innerHeight * 2.55}`,
-      pin: stage, scrub: .9, invalidateOnRefresh: true, refreshPriority: 2,
-      onUpdate: self => {
-        const showEvidence = self.progress > .48;
+    // Phases, in timeline time: read Rev A, scrub to Rev B, hold the comparison, then the evidence transition.
+    // That transition keeps its own timings and scroll length, shifted to start after the hold.
+    const revisionStart = .05, revisionEnd = .29, evidenceStart = .37;
+    const at = time => time - .19 + evidenceStart;
+    const total = at(1);
+    const sequence = gsap.timeline({
+      // Timeline time, not scroll progress: scrub trails the scroll, and these states must follow what is on screen.
+      onUpdate: () => {
+        syncRevision();
+        const showEvidence = sequence.time() >= at(.47);
         evidence.inert = !showEvidence; document.querySelector('.change-panel').inert = showEvidence;
         document.querySelector('.chapter-current').textContent = showEvidence ? '04' : '03';
         if (state.antennaVisible === showEvidence) { state.antennaVisible = !showEvidence; refreshScenes(); }
-      }
-    } });
+      },
+      scrollTrigger: { trigger: '.change-story', start: 'top 64px', end: () => `+=${innerHeight * 2.55 * total}`, pin: stage, scrub: .9, invalidateOnRefresh: true, refreshPriority: 2 }
+    });
     changeTrigger = sequence.scrollTrigger;
-    sequence.to({}, { duration: .18 })
-      .to('.change-panel .chapter-copy', { autoAlpha: 0, filter: 'blur(6px)', duration: .19, ease: 'power2.in' }, .19)
-      .to('.change-visual', { autoAlpha: 0, scale: .87, filter: 'blur(8px)', duration: .24, ease: 'power2.inOut' }, .25)
-      .to(evidence, { autoAlpha: 1, duration: .03 }, .46)
-      .fromTo('.sheet-source', { x: 120, y: 130, rotation: 16, rotationX: 45, autoAlpha: 0 }, { x: -80, y: 10, rotation: -15, rotationX: 12, autoAlpha: 1, duration: .28, ease: 'power3.out' }, .46)
-      .fromTo('.sheet-compare', { x: 150, y: 110, rotation: 22, rotationX: 50, autoAlpha: 0 }, { x: -30, y: -20, rotation: -5, rotationX: 12, autoAlpha: 1, duration: .29, ease: 'power3.out' }, .50)
-      .fromTo('.sheet-digest', { x: 200, y: 100, rotation: 28, rotationX: 55, autoAlpha: 0 }, { x: 32, y: 16, rotation: 8, rotationX: 12, autoAlpha: 1, duration: .30, ease: 'power3.out' }, .54)
-      .fromTo('.evidence-heading', { autoAlpha: 0, clipPath: 'inset(0 0 100% 0)' }, { autoAlpha: 1, clipPath: 'inset(0 0 0% 0)', duration: .22, ease: 'power2.out' }, .57)
-      .fromTo('.evidence-panel .eyebrow', { autoAlpha: 0 }, { autoAlpha: 1, duration: .15 }, .58)
-      .fromTo('.evidence-lede, .evidence-cta, .evidence-note', { autoAlpha: 0 }, { autoAlpha: 1, duration: .18, stagger: .035 }, .66)
-      .fromTo('.sheet-kicker, .paper-title, .sheet-text > *, .sheet-foot', { autoAlpha: 0, y: 9 }, { autoAlpha: 1, y: 0, duration: .15, stagger: .004, ease: 'power2.out' }, .69)
-      .to('.scene-back', { autoAlpha: 1, duration: .1 }, .81)
-      .to({}, { duration: .12 }, .88)
-      .to('.chapter-progress i', { scaleX: 1, duration: 1, ease: 'none' }, 0);
+    sequence.fromTo(state, { revision: 0 }, { revision: 1, duration: revisionEnd - revisionStart, ease: 'power1.inOut' }, revisionStart)
+      .to('.change-panel .chapter-copy', { autoAlpha: 0, filter: 'blur(6px)', duration: .19, ease: 'power2.in' }, at(.19))
+      .to('.change-visual', { autoAlpha: 0, scale: .87, filter: 'blur(8px)', duration: .24, ease: 'power2.inOut' }, at(.25))
+      .to(evidence, { autoAlpha: 1, duration: .03 }, at(.46))
+      .fromTo('.sheet-source', { x: 120, y: 130, rotation: 16, rotationX: 45, autoAlpha: 0 }, { x: -80, y: 10, rotation: -15, rotationX: 12, autoAlpha: 1, duration: .28, ease: 'power3.out' }, at(.46))
+      .fromTo('.sheet-compare', { x: 150, y: 110, rotation: 22, rotationX: 50, autoAlpha: 0 }, { x: -30, y: -20, rotation: -5, rotationX: 12, autoAlpha: 1, duration: .29, ease: 'power3.out' }, at(.50))
+      .fromTo('.sheet-digest', { x: 200, y: 100, rotation: 28, rotationX: 55, autoAlpha: 0 }, { x: 32, y: 16, rotation: 8, rotationX: 12, autoAlpha: 1, duration: .30, ease: 'power3.out' }, at(.54))
+      .fromTo('.evidence-heading', { autoAlpha: 0, clipPath: 'inset(0 0 100% 0)' }, { autoAlpha: 1, clipPath: 'inset(0 0 0% 0)', duration: .22, ease: 'power2.out' }, at(.57))
+      .fromTo('.evidence-panel .eyebrow', { autoAlpha: 0 }, { autoAlpha: 1, duration: .15 }, at(.58))
+      .fromTo('.evidence-lede, .evidence-cta, .evidence-note', { autoAlpha: 0 }, { autoAlpha: 1, duration: .18, stagger: .035 }, at(.66))
+      .fromTo('.sheet-kicker, .paper-title, .sheet-text > *, .sheet-foot', { autoAlpha: 0, y: 9 }, { autoAlpha: 1, y: 0, duration: .15, stagger: .004, ease: 'power2.out' }, at(.69))
+      .to('.scene-back', { autoAlpha: 1, duration: .1 }, at(.81))
+      .to({}, { duration: .12 }, at(.88))
+      .to('.chapter-progress i', { scaleX: 1, duration: total, ease: 'none' }, 0);
+    syncRevision();
 
     const methodStage = document.querySelector('.method-stage'); methodStage.classList.add('is-guided');
     const windowEl = document.querySelector('.method-window'), track = document.querySelector('.method-track');
@@ -295,7 +341,7 @@ function setupMotion() {
       onUpdate: self => { methodActive(Math.min(5, Math.round(self.progress * 5))); document.querySelector('.method-navigation').style.setProperty('--method-progress', self.progress); }
     } });
     methodTrigger = guide.scrollTrigger;
-    return () => { stage.classList.remove('is-cinematic'); methodStage.classList.remove('is-guided'); evidence.inert = false; document.querySelector('.change-panel').inert = false; state.antennaVisible = true; refreshScenes(); changeTrigger = undefined; methodTrigger = undefined; };
+    return () => { stage.classList.remove('is-cinematic'); methodStage.classList.remove('is-guided'); evidence.inert = false; document.querySelector('.change-panel').inert = false; state.antennaVisible = true; state.revision = 1; syncRevision(); changeTrigger = undefined; methodTrigger = undefined; };
   });
   // Refresh the upstream pins before the preserved footer's contact pin.
   ScrollTrigger.sort();
