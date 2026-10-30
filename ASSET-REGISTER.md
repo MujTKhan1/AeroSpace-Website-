@@ -1,6 +1,6 @@
 # Landing page asset register
 
-Target page for all entries: Home (hero orbit, baseline/proposed comparison, digest thumbnail and contact section). All configurations are illustrative visual assemblies, not flight designs or Mission Beacon client projects.
+Target page for all entries: Home (baseline/proposed comparison, digest thumbnail and contact section). All configurations are illustrative visual assemblies, not flight designs or Mission Beacon client projects.
 
 ## NASA Satellite Kit — selected modular geometry
 
@@ -10,18 +10,18 @@ Repository: https://github.com/nasa/NASA-3D-Resources/tree/master/3D%20Models/Sa
 
 Source credit: NASA/Ames Research Center. Source terms reviewed at https://www.nasa.gov/nasa-brand-center/images-and-media/ and https://github.com/nasa/NASA-3D-Resources . Repository describes these assets as free and without copyright; NASA media use conditions apply. No NASA logo, seal, affiliation, endorsement, approval, or agency authority is represented.
 
-| Original file | Local file | Role | Modifications |
+| Original file | Former local file | Role | Modifications |
 |---|---|---|---|
 | Satellite Kit body 3.glb | dist/assets/satellite-kit/body-3.glb | Common baseline and proposed spacecraft body | Recentered and rescaled; width/depth adjusted for a compact illustrative bus; neutral/gold thermal materials; structural fittings, radiator and antenna details added |
 | Satellite Kit wings 2.glb | dist/assets/satellite-kit/wings-2.glb | Common paired solar arrays | Recentered and rescaled to a 6.35 scene-unit span; array orientation adjusted for the three-quarter presentation; locally authored solar-cell and metal materials |
 | Satellite Kit radio 2.glb | dist/assets/satellite-kit/radio-2.glb | Baseline communication assembly | Recentered, rescaled and mounted on the common body; neutral materials; added smooth parabolic reflector, rim and feed struts |
-| Satellite Kit radio 3.glb | dist/assets/satellite-kit/radio-3.glb (retained; not loaded by the current page) | Proposed communication assembly | Same presentation process; larger asymmetric module and reflector; restrained amber edges identify the illustrative changed assembly |
+| Satellite Kit radio 3.glb | dist/assets/satellite-kit/radio-3.glb | Proposed communication assembly | Same presentation process; larger asymmetric module and reflector; restrained amber edges identify the illustrative changed assembly |
 
-Parts were downloaded and their nodes, bounds, materials and reference assembly inspected before selection. They are modular source pieces, not a complete hero. The assembled three-quarter views were checked in-browser. Scene units and geometry are illustrative, with no claimed engineering dimensions or performance implications.
+These GLB parts have been removed from the site and remain only in the git history; this record stays because the static illustrations derive from the assembled concept. Parts were downloaded and their nodes, bounds, materials and reference assembly inspected before selection. They are modular source pieces, not a complete hero. The assembled three-quarter views were checked in-browser. Scene units and geometry are illustrative, with no claimed engineering dimensions or performance implications.
 
 Reference image: documentation/satellite-kit-reference.png, from the same NASA repository. Used for assembly inspection only, not displayed as a hero asset.
 
-Static illustrations: dist/assets/satellite-fallback.svg (baseline, Rev A) and dist/assets/satellite-proposed.svg (proposed, Rev B) are locally authored schematic illustrations of the assembled concept, used for the same-camera comparison, the digest thumbnail and the contact section. In the hero, the assembly (body 3, wings 2, radio 2) is shown small on an orbit around a procedurally generated dotted globe. Reduced motion renders a still frame; if WebGL is unavailable a CSS globe is shown.
+Static illustrations: dist/assets/satellite-fallback.svg (baseline, Rev A) and dist/assets/satellite-proposed.svg (proposed, Rev B) are locally authored schematic illustrations of the assembled concept, used for the same-camera comparison, the digest thumbnail and the contact section. The hero no longer shows the assembly, only its procedurally generated dotted globe. Reduced motion renders a still frame; if WebGL is unavailable a CSS globe is shown.
 
 ## NASA Juno 3D model — engineering exhibits
 

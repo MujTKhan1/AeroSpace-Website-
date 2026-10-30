@@ -1,9 +1,6 @@
 import * as THREE from './assets/three.module.js';
-import { GLTFLoader } from './assets/GLTFLoader.js';
-import { DRACOLoader } from './assets/DRACOLoader.js';
 
-// Hero scene: starfield, dotted globe with atmosphere and a misty accretion ring, orbit rings and the
-// illustrative NASA Satellite Kit assembly travelling along one orbit.
+// Hero scene: starfield, dotted globe with atmosphere and a misty accretion ring, and orbit rings.
 const canvas = document.getElementById('space-canvas');
 const hero = document.querySelector('.hero');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -159,19 +156,10 @@ function createScene() {
   ringGroup.rotation.set(1.22, 0, -.32);
   globe.add(ringGroup);
   const ringMat = new THREE.LineBasicMaterial({ color: 0x8fb0ff, transparent: true, opacity: .2 });
-  const orbit = new THREE.EllipseCurve(0, 0, 3.4, 3.4);
   for (const radius of [3.4, 4.3]) {
     const pts = new THREE.EllipseCurve(0, 0, radius, radius).getPoints(256).map(p => new THREE.Vector3(p.x, p.y, 0));
     ringGroup.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), ringMat));
   }
-
-  scene.add(new THREE.AmbientLight(0x9fb4e0, .7));
-  const sun = new THREE.DirectionalLight(0xfff4e6, 3.2);
-  sun.position.copy(sunDir).multiplyScalar(10);
-  scene.add(sun);
-
-  const satellite = new THREE.Group();
-  ringGroup.add(satellite);
 
   let width = 1, height = 1, mobile = false, time = 0, last = performance.now(), frameId, running = true, pointerX = 0, pointerY = 0;
   function layout() {
@@ -206,10 +194,6 @@ function createScene() {
       globe.rotation.y = time * .045 + p * 1.2;
       globe.rotation.x += ((pointerY * .08) - globe.rotation.x) * .04;
       scene.rotation.y += ((pointerX * .04) - scene.rotation.y) * .04;
-      const a = time * .16 + 1.3;
-      const pos = orbit.getPoint((a / (Math.PI * 2)) % 1);
-      satellite.position.set(pos.x, pos.y, 0);
-      satellite.rotation.set(time * .3, time * .2, a + Math.PI / 2);
       place(p);
       render();
     }
@@ -222,44 +206,13 @@ function createScene() {
 
   function start() { if (!running) { running = true; last = performance.now(); frameId = requestAnimationFrame(frame); } }
   function stop() { running = false; cancelAnimationFrame(frameId); }
-  if (reduced.matches) { running = false; satellite.position.set(orbit.getPoint(.2).x, orbit.getPoint(.2).y, 0); render(); }
+  if (reduced.matches) { running = false; render(); }
   else frameId = requestAnimationFrame(frame);
   reduced.addEventListener('change', e => { if (e.matches) { stop(); render(); } else start(); });
   addEventListener('beacon:scroll', () => { if (reduced.matches) { place(shared.hero); render(); } });
 
   document.documentElement.classList.add('scene-ready');
   canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); stop(); document.documentElement.classList.remove('scene-ready'); });
-
-  loadSatellite(satellite).then(render).catch(error => console.warn('Satellite model unavailable:', error.message));
-}
-
-async function loadSatellite(group) {
-  const loader = new GLTFLoader();
-  const draco = new DRACOLoader();
-  draco.setDecoderPath(new URL('./assets/draco/', import.meta.url).href);
-  loader.setDRACOLoader(draco);
-  const [body, wings, radio] = await Promise.all(['body-3', 'wings-2', 'radio-2'].map(name => loader.loadAsync(`./assets/satellite-kit/${name}.glb`)));
-  draco.dispose();
-  const foil = new THREE.MeshStandardMaterial({ color: 0xc9a86a, metalness: .85, roughness: .35 });
-  const metal = new THREE.MeshStandardMaterial({ color: 0xc4cad0, metalness: .9, roughness: .3 });
-  const panel = new THREE.MeshStandardMaterial({ color: 0x2d4f86, metalness: .4, roughness: .45, emissive: 0x0b1d3d, emissiveIntensity: .5 });
-  const dish = new THREE.MeshStandardMaterial({ color: 0xe4e7ea, metalness: .3, roughness: .35, side: THREE.DoubleSide });
-  function prepare(model, axis, target) {
-    model.updateMatrixWorld(true);
-    const box = new THREE.Box3().setFromObject(model), size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
-    const inner = new THREE.Group(); inner.add(model); model.position.sub(center); inner.scale.setScalar(target / size[axis]);
-    const outer = new THREE.Group(); outer.add(inner); return outer;
-  }
-  const b = prepare(body.scene, 'y', 1.65); b.scale.set(1.6, 1, 1.6);
-  b.traverse(m => { if (m.isMesh) m.material = foil; });
-  const w = prepare(wings.scene, 'x', 6.35); w.rotation.x = .95;
-  w.traverse(m => { if (m.isMesh) m.material = /SolarPanels|lambert/.test(m.material.name) ? panel : metal; });
-  const r = prepare(radio.scene, 'x', 1.55); r.position.set(0, .58, .45);
-  r.traverse(m => { if (m.isMesh) m.material = /Dish/.test(m.material.name) ? dish : metal; });
-  const assembly = new THREE.Group();
-  assembly.add(b, w, r);
-  assembly.scale.setScalar(.22);
-  group.add(assembly);
 }
 
 try { createScene(); }

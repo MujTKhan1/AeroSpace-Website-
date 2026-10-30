@@ -37,6 +37,5 @@ The form validates required fields in the browser but is not connected to an inq
 - `dist/space.js` — Three.js hero scene
 - `dist/experience.js` — new Three.js exhibits, cinematic transition and horizontal method
 - `dist/experience.css` — layouts and responsive styles for those sections
-- `dist/assets/satellite-kit/` — selected modular GLB parts
 
 Sources, licences and modifications are recorded in [ASSET-REGISTER.md](ASSET-REGISTER.md). `npm run check` verifies JavaScript syntax.
