@@ -1,6 +1,6 @@
 # Mission Beacon — landing page
 
-A single-page landing site built from the client's Website Architecture and 3D Direction brief. The hero is a dark space scene (dotted globe, atmosphere, orbit rings and the illustrative NASA Satellite Kit assembly on orbit). Everything below the hero is a light, editorial layout focused on the regulatory services.
+A single-page landing site built from the client's Website Architecture and 3D Direction brief. The existing space hero, engineering-to-regulatory gap and footer are retained. The middle combines interactive spacecraft views, a cinematic change-to-evidence transition and a source-to-records scene, with an off-white editorial layout and a navy interlude.
 
 ## Run locally
 
@@ -8,7 +8,7 @@ Run `npm run dev`, then open http://127.0.0.1:4173/ . There is no build step or 
 
 ## Page structure
 
-Hero, the engineering-to-regulatory gap, four capabilities, baseline vs proposed (Rev A / Rev B), illustrative communications scenario, sample Regulatory Impact Assessment Digest (marked demo data), audiences, the six-stage method, principles, engagement models and the contact form with the information-security notice. Copy is taken from the client's Home, Capabilities, Method, Company and Contact tabs.
+Hero, engineering-to-regulatory gap, four interactive capabilities, baseline/proposed antenna assembly, illustrative evidence package, communications record dependencies, audiences, six-stage method, principles, engagement models and contact. The page prepares evidence and questions for authorised human reviewers; it does not make legal, classification or agency determinations.
 
 ## Typography
 
@@ -18,8 +18,11 @@ Space Grotesk (headings, numbers and the wordmark), DM Sans (body text) and Geis
 
 - Lenis smooth scrolling, synchronised with GSAP ScrollTrigger.
 - Hero entrance with masked line reveals; the light page slides up over the pinned hero while the globe zooms and dims.
-- Word-by-word heading reveals, staggered card and row reveals.
-- The gap connector draws in and breaks; the Rev A / Rev B view wipes with scroll; the digest document settles flat; the method stages scroll horizontally in a pinned section on desktop.
+- Capability selection turns the NASA Juno reference and briefly separates its dish; mouse dragging rotates it. A shared pause control stops ambient motion in the new 3D scenes.
+- On desktop, the change/evidence stage stays in place. The old foreground dissolves, document sheets assemble, then the new heading and document text reveal independently. Scrolling back reverses the sequence; explicit forward/back controls are also provided.
+- The navy scene draws 3D connections from an illustrative communications assembly to classification, spectrum and licence records, with travelling light pulses and document reveals.
+- The six-stage method travels horizontally on desktop, with direct stage navigation. On mobile it becomes a touch-scrollable guide, and the change/evidence panels stack vertically.
+- WebGL exhibits load near the viewport, share one source-model request and stop ambient rendering when hidden or paused. The new cropped antenna geometry is derived at runtime from NASA's supplied Juno mesh.
 - `prefers-reduced-motion` turns off smooth scrolling, scroll animations and automatic 3D motion. A CSS globe is shown if WebGL is unavailable.
 
 ## Contact form
@@ -32,6 +35,8 @@ The form validates required fields in the browser but is not connected to an inq
 - `dist/styles.css` — design tokens, layout and responsive styles
 - `dist/main.js` — Lenis, GSAP ScrollTrigger animations, navigation and form
 - `dist/space.js` — Three.js hero scene
+- `dist/experience.js` — new Three.js exhibits, cinematic transition and horizontal method
+- `dist/experience.css` — layouts and responsive styles for those sections
 - `dist/assets/satellite-kit/` — selected modular GLB parts
 
 Sources, licences and modifications are recorded in [ASSET-REGISTER.md](ASSET-REGISTER.md). `npm run check` verifies JavaScript syntax.

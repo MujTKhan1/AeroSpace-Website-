@@ -1,1 +1,1 @@
-{"name":"mission-beacon","private":true,"version":"1.0.0","type":"module","scripts":{"dev":"node serve.mjs","check":"node --check dist/main.js && node --check dist/space.js"}}
+{"name":"mission-beacon","private":true,"version":"1.0.0","type":"module","scripts":{"dev":"node serve.mjs","check":"node --check dist/main.js && node --check dist/space.js && node --check dist/experience.js"}}

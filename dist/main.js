@@ -29,6 +29,7 @@
       requestAnimationFrame(raf);
     }
   }
+  shared.lenis = lenis;
   document.addEventListener('click', e => {
     const link = e.target.closest('a[href^="#"]');
     if (!link) return;
@@ -39,7 +40,7 @@
     setMenu(false);
     // A pinned section is position: fixed; scroll to its spacer, which keeps its place in the page.
     if (target && target.parentElement.classList.contains('pin-spacer')) target = target.parentElement;
-    if (lenis) lenis.scrollTo(target, { offset: id === '#top' ? 0 : -40, duration: 1.4 });
+    if (lenis) lenis.scrollTo(target, { offset: id === '#top' ? 0 : -64, duration: 1.4 });
     else if (target === 0) window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
     else target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
     if (target !== 0) history.replaceState(null, '', id);
@@ -174,26 +175,6 @@
     scrollTrigger: { trigger: trace, start: 'top 72%' }
   });
 
-  // Capabilities: whichever service crosses the middle of the screen becomes active.
-  const capList = document.querySelector('.cap-list');
-  const capItems = gsap.utils.toArray('.cap-item');
-  const capLabels = document.querySelectorAll('.cap-label');
-  const setCap = i => {
-    capItems.forEach((el, j) => el.classList.toggle('is-active', i === j));
-    capLabels.forEach((el, j) => el.classList.toggle('is-active', i === j));
-  };
-  capList.classList.add('is-live');
-  capItems.forEach((item, i) => ScrollTrigger.create({ trigger: item, start: 'top 55%', end: 'bottom 55%', onToggle: self => self.isActive && setCap(i) }));
-
-  // Method: the timeline draws downward and each stage lights as the line reaches it.
-  const timeline = document.querySelector('.timeline');
-  timeline.classList.add('is-live');
-  gsap.fromTo('.tl-fill', { '--p': 0 }, { '--p': 1, ease: 'none', scrollTrigger: { trigger: timeline, start: 'top 60%', end: 'bottom 60%', scrub: .5 } });
-  gsap.utils.toArray('.tl-step').forEach(step => {
-    ScrollTrigger.create({ trigger: step, start: 'top 60%', onEnter: () => step.classList.add('is-on'), onLeaveBack: () => step.classList.remove('is-on') });
-    gsap.from(step.querySelector('.tl-body'), { autoAlpha: 0, y: 30, duration: 1.1, ease: 'expo.out', scrollTrigger: { trigger: step, start: 'top 82%' } });
-  });
-
   // Statement: words brighten as it scrolls through.
   const statement = document.querySelector('.statement-text');
   statement.setAttribute('aria-label', statement.textContent.trim());
@@ -219,33 +200,14 @@
       .from(stop.querySelector('.scale-body'), { autoAlpha: 0, y: 18, duration: 1, ease: 'expo.out' }, .15 + i * .8);
   });
 
-  // Starting point: baseline hairlines draw, the amber redline draws over them, then the cloud and marker land.
-  gsap.timeline({ scrollTrigger: { trigger: '.redline', start: 'top 80%', end: 'center 40%', scrub: 1 } })
-    .fromTo('.rl-draw', { strokeDashoffset: 1, strokeDasharray: 1 }, { strokeDashoffset: 0, ease: 'none', stagger: .08, duration: .5 })
-    .from('.rl-fade', { autoAlpha: 0, duration: .3, stagger: .03 }, '-=.3')
-    .fromTo('.rl-draw-b', { strokeDashoffset: 1, strokeDasharray: 1 }, { strokeDashoffset: 0, ease: 'none', stagger: .1, duration: .5 })
-    .from('.rl-fade-b', { autoAlpha: 0, duration: .3, stagger: .05 }, '-=.2')
-    .from('.rl-cloud', { autoAlpha: 0, scale: .7, svgOrigin: '300 118', duration: .35, ease: 'back.out(2)' })
-    .from('.rl-mark', { autoAlpha: 0, scale: .4, svgOrigin: '392 72', duration: .3, ease: 'back.out(3)' }, '-=.1')
-    .from('.redline-caption', { autoAlpha: 0, y: 8, duration: .3 });
-
-  // Scenario table rows.
-  gsap.from('.param-table tbody tr', { autoAlpha: 0, y: 16, duration: .8, ease: 'power3.out', stagger: .07, scrollTrigger: { trigger: '.param-table', start: 'top 80%' } });
-
   const mm = gsap.matchMedia();
   mm.add('(min-width: 861px)', () => {
-    // Digest document settles flat as it arrives.
-    gsap.fromTo('.digest-doc', { rotateX: 16, rotateZ: -2, y: 80, transformPerspective: 1200 }, {
-      rotateX: 0, rotateZ: 0, y: 0, ease: 'none',
-      scrollTrigger: { trigger: '.digest-doc', start: 'top 95%', end: 'center 55%', scrub: 1 }
-    });
-
     // Footer slides over the last section like a sheet: contact holds by its bottom edge (so its Send
     // button stays reachable), then recedes and dims beneath the footer. Phones scroll normally.
     // The footer fills the screen below the header, so the slide ends exactly at max scroll; its top
     // corners square off as it lands so the final state is a clean full screen.
     gsap.timeline({
-      scrollTrigger: { trigger: '.contact', start: 'bottom bottom', end: 'max', pin: true, pinSpacing: false, scrub: true, invalidateOnRefresh: true }
+      scrollTrigger: { trigger: '.contact', start: 'bottom bottom', end: 'max', pin: true, pinSpacing: false, scrub: true, invalidateOnRefresh: true, refreshPriority: -10 }
     })
       .to('.contact', { '--dim': .45, scale: .94, transformOrigin: '50% 100%', ease: 'none', duration: 1 }, 0)
       .to('.site-footer', { borderTopLeftRadius: 0, borderTopRightRadius: 0, ease: 'none', duration: .15 }, .85);

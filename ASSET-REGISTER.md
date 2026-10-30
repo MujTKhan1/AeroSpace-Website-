@@ -1,4 +1,4 @@
-# Hero asset register
+# Landing page asset register
 
 Target page for all entries: Home (hero orbit, baseline/proposed comparison, digest thumbnail and contact section). All configurations are illustrative visual assemblies, not flight designs or Mission Beacon client projects.
 
@@ -23,7 +23,7 @@ Reference image: documentation/satellite-kit-reference.png, from the same NASA r
 
 Static illustrations: dist/assets/satellite-fallback.svg (baseline, Rev A) and dist/assets/satellite-proposed.svg (proposed, Rev B) are locally authored schematic illustrations of the assembled concept, used for the same-camera comparison, the digest thumbnail and the contact section. In the hero, the assembly (body 3, wings 2, radio 2) is shown small on an orbit around a procedurally generated dotted globe. Reduced motion renders a still frame; if WebGL is unavailable a CSS globe is shown.
 
-## NASA Juno 3D model — Capabilities panel
+## NASA Juno 3D model — engineering exhibits
 
 Source: https://science.nasa.gov/resource/juno-3d-model/ (direct file: https://assets.science.nasa.gov/content/dam/science/psd/solar/2023/09/j/Juno.glb, glTF dated Sep 9, 2023)
 
@@ -31,9 +31,11 @@ Source credit: NASA Visualization Technology Applications and Development (VTAD)
 
 | Original file | Local file | Role | Modifications |
 |---|---|---|---|
-| Juno.glb (9,185,648 bytes) | dist/assets/juno/Juno.glb | Interactive, drag-to-rotate model in the Capabilities sticky panel (dist/juno.js) | None. The file is served unmodified. Compression with glTF-Transform was planned but not run in this pass; the model is lazy-loaded only when the panel nears the viewport. |
+| Juno.glb (9,185,648 bytes) | dist/assets/juno/Juno.glb | Interactive spacecraft, baseline/proposed illustration and signal-to-records scene (dist/experience.js) | Source file retained unmodified. At runtime the spacecraft is centred and scaled, dish nodes separate for the capability animation, and copies of the supplied geometry are filtered to isolate the central antenna/bus assembly. A translucent baseline copy and amber edge overlay distinguish the illustrative comparison. |
 
-Presentation: the client brief treats Juno as an engineering reference only. It is not presented as a generic commercial satellite or as a Mission Beacon project, and the panel shows the always-visible caption "NASA Juno spacecraft model · Credit: NASA VTAD · Engineering reference only, not a Mission Beacon project". Lighting is a neutral studio setup (Three.js RoomEnvironment plus key, fill and rim lights) with a transparent background over the panel. Zoom and pan are disabled, so page scrolling is never captured. Vertical touch drags scroll the page and horizontal drags rotate the model. Reduced motion shows a still frame with no auto-rotation. If WebGL or loading fails, the locally authored dist/assets/satellite-fallback.svg is shown instead. The panel is hidden below 861px wide, so phones do not download the model.
+Presentation: Juno is an illustrative engineering reference, not a Mission Beacon project or flight-design comparison. The capability view carries a NASA Juno caption; the preserved footer credits NASA VTAD and states that NASA does not endorse Mission Beacon. Lighting uses Three.js RoomEnvironment and neutral studio lights. Capability selection and mouse dragging rotate the model without capturing touch scrolling. Desktop and mobile share one lazy model request; hidden views stop ambient rendering. Reduced motion initially shows still frames and removes pinned motion. If loading or WebGL fails, the existing supplied satellite SVGs remain visible. No engineering values or performance conclusions are inferred from the meshes.
+
+The evidence sheets and record documents are selectable HTML content transformed in perspective. They are clearly illustrative, with no approval seals, fabricated numerical specifications or claims of regulatory determination. The connector tubes, scan rings and travelling light points are procedural Three.js presentation effects, not live telemetry.
 
 ## Locally authored materials and lighting
 
