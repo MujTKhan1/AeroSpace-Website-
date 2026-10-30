@@ -148,7 +148,7 @@
     gsap.from(el, { y: 30, autoAlpha: 0, duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 88%' } });
   });
   // Audiences: each row's hairline draws, then the role slides in from the left and the need from the right.
-  const audTl = gsap.timeline({ scrollTrigger: { trigger: '.aud-table', start: 'top 80%', once: true } });
+  const audTl = gsap.timeline({ scrollTrigger: { trigger: '.aud-table', start: 'top 80%' } });
   gsap.utils.toArray('.aud-row').forEach((row, i) => {
     const at = i * .12;
     audTl.fromTo(row, { '--line': 0 }, { '--line': 1, duration: 1, ease: 'expo.out' }, at)
@@ -271,5 +271,32 @@
     scrollTrigger: { trigger: '.foot-card', start: 'top bottom', end: 'clamp(bottom bottom)', scrub: true }
   });
 
-  addEventListener('load', () => ScrollTrigger.refresh());
+  // A one-shot reveal never fires if the page opens below it (a refresh mid-page restores the scroll
+  // position, or a #section link), which would leave its content hidden even after scrolling back up.
+  // Once a reveal's element is entirely above the viewport it is finished, so it can never be seen
+  // mid-animation; class-based steps just run their onEnter. Scrubbed animations follow the scroll.
+  // The browser's scroll restore can land without ScrollTrigger noticing (its cached position stays at
+  // 0), so sync it first and measure against the real scroll position.
+  const finishPassed = () => {
+    ScrollTrigger.update();
+    const y = scrollY;
+    ScrollTrigger.getAll().forEach(t => {
+      if (t.vars.scrub || y <= t.start) return;
+      const a = t.animation;
+      if (!a) { if (t.vars.onEnter) t.vars.onEnter(t); return; }
+      // Above the viewport: finish it. On screen but never started: play it as normal.
+      if (y > t.end) { if (a.progress() < 1) a.progress(1, false); }
+      else if (a.progress() === 0 && !a.isActive()) a.play();
+    });
+  };
+  let finishQueued = false;
+  addEventListener('scroll', () => {
+    if (finishQueued) return;
+    finishQueued = true;
+    setTimeout(() => { finishQueued = false; finishPassed(); }, 80);
+  }, { passive: true });
+  // ScrollTrigger restores saved progress at the end of a refresh, so check again once it settles.
+  ScrollTrigger.addEventListener('refresh', () => setTimeout(finishPassed, 0));
+  document.fonts.ready.then(() => ScrollTrigger.refresh());
+  addEventListener('load', () => { ScrollTrigger.refresh(); setTimeout(finishPassed, 400); });
 })();
