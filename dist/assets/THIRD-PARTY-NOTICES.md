@@ -9,13 +9,13 @@ https://www.nasa.gov/nasa-brand-center/images-and-media/
 
 Selected modular source geometry has been reassembled, rescaled, given new materials and supplemented with illustrative fittings and reflectors. NASA does not endorse Mission Beacon. The model is an illustrative assembly and is not represented as a Mission Beacon project or a flight-qualified design.
 
-## NASA Juno 3D model
+## NASA SSL-1300 3D model
 
-Juno 3D Model. Credit: NASA Visualization Technology Applications and Development (VTAD).
-https://science.nasa.gov/resource/juno-3d-model/
+Space Systems Loral (SSL-1300). Source: NASA 3D Resources.
+https://github.com/nasa/NASA-3D-Resources/tree/master/3D%20Models/Space%20Systems%20Loral%20(SSL-1300)
 https://www.nasa.gov/nasa-brand-center/images-and-media/
 
-The model file (juno/Juno.glb) is served unmodified as an engineering reference in the Capabilities section. NASA does not endorse Mission Beacon, and Juno is not represented as a Mission Beacon project or a commercial satellite.
+The model file (ssl-1300/SSL-1300.glb) is served unmodified as an illustrative communications satellite in the Capabilities, change and records scenes. NASA does not endorse Mission Beacon. The model is not represented as a Mission Beacon project, a client configuration or a product of its manufacturer, and no affiliation is implied.
 
 ## Three.js
 

@@ -18,11 +18,11 @@ Space Grotesk (headings, numbers and the wordmark), DM Sans (body text) and Geis
 
 - Lenis smooth scrolling, synchronised with GSAP ScrollTrigger.
 - Hero entrance with masked line reveals; the light page slides up over the pinned hero while the globe zooms and dims.
-- Capability selection turns the NASA Juno reference and briefly separates its dish; mouse dragging rotates it. A shared pause control stops ambient motion in the new 3D scenes.
+- Capability selection turns the NASA SSL-1300 communications satellite and briefly separates its side reflectors; mouse dragging rotates it. A shared pause control stops ambient motion in the new 3D scenes.
 - On desktop, the change/evidence stage stays in place. The old foreground dissolves, document sheets assemble, then the new heading and document text reveal independently. Scrolling back reverses the sequence; explicit forward/back controls are also provided.
 - The navy scene draws 3D connections from an illustrative communications assembly to classification, spectrum and licence records, with travelling light pulses and document reveals.
 - The six-stage method travels horizontally on desktop, with direct stage navigation. On mobile it becomes a touch-scrollable guide, and the change/evidence panels stack vertically.
-- WebGL exhibits load near the viewport, share one source-model request and stop ambient rendering when hidden or paused. The new cropped antenna geometry is derived at runtime from NASA's supplied Juno mesh.
+- WebGL exhibits load near the viewport, share one source-model request and stop ambient rendering when hidden or paused. The new cropped antenna geometry is derived at runtime from NASA's supplied SSL-1300 mesh (bus and reflectors, without the solar arrays).
 - `prefers-reduced-motion` turns off smooth scrolling, scroll animations and automatic 3D motion. A CSS globe is shown if WebGL is unavailable.
 
 ## Contact form

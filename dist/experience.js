@@ -7,16 +7,49 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const shared = (window.__beacon ||= { hero: 0 });
 const state = { paused: reduced.matches, discipline: 0, explosion: 0, revision: 1, signal: 1, antennaVisible: true };
 const scenes = [];
-const JUNO_DISPLAY_SCALE = .9;
-// Widest the normalised Juno gets at any rotation; narrow stages keep this 5% side margin however it is turned.
-const JUNO_ROTATED_SPAN = 1.28, JUNO_SIDE_MARGIN = .05;
+const SATELLITE_DISPLAY_SCALE = .9;
+// Widest the normalised satellite gets at any rotation; narrow stages keep this 5% side margin however it is turned.
+const SATELLITE_ROTATED_SPAN = 1.05, SATELLITE_SIDE_MARGIN = .05;
+// NASA's SSL-1300 file is one mesh in local units (solar arrays along x, reflectors beyond the bus on ±y).
+const BUS_HALF_WIDTH = 19, REFLECTOR_MIN_Y = 15.5;
 let modelPromise, recordsTimeline;
 function loadSpacecraft() {
   if (!modelPromise) {
     const draco = new DRACOLoader().setDecoderPath(new URL('./assets/draco/', import.meta.url).href);
-    modelPromise = new GLTFLoader().setDRACOLoader(draco).loadAsync('./assets/juno/Juno.glb').then(gltf => { draco.dispose(); return gltf.scene; });
+    modelPromise = new GLTFLoader().setDRACOLoader(draco).loadAsync('./assets/ssl-1300/SSL-1300.glb').then(gltf => { draco.dispose(); return gltf.scene; });
   }
   return modelPromise;
+}
+
+// Rebuild the supplied geometry with only the triangles that pass `keep`, splitting the side reflectors
+// into their own `dish_` meshes so the exhibits can move or outline them separately from the bus.
+function partition(source, keep) {
+  const group = new THREE.Group();
+  source.updateMatrixWorld(true);
+  source.traverse(mesh => {
+    if (!mesh.isMesh) return;
+    const position = mesh.geometry.attributes.position, index = mesh.geometry.index;
+    const parts = { bus: [], 1: [], '-1': [] }, count = index ? index.count : position.count;
+    for (let i = 0; i < count; i += 3) {
+      const triangle = [0, 1, 2].map(j => index ? index.getX(i + j) : i + j);
+      if (!triangle.every(j => keep(position, j))) continue;
+      const side = triangle.every(j => position.getY(j) > REFLECTOR_MIN_Y) ? 1 : triangle.every(j => position.getY(j) < -REFLECTOR_MIN_Y) ? -1 : 'bus';
+      parts[side].push(...triangle);
+    }
+    for (const [part, kept] of Object.entries(parts)) {
+      if (!kept.length) continue;
+      const indexed = mesh.geometry.clone(); indexed.setIndex(kept); indexed.clearGroups();
+      const geometry = indexed.toNonIndexed(); indexed.dispose();
+      geometry.computeBoundingBox(); geometry.computeBoundingSphere();
+      const clone = new THREE.Mesh(geometry, mesh.material);
+      clone.name = part === 'bus' ? mesh.name : `dish_${mesh.name}`;
+      clone.applyMatrix4(mesh.matrixWorld);
+      // Reflectors on either side separate outwards, away from the bus.
+      if (part !== 'bus') clone.userData.outward = new THREE.Vector3(0, Number(part), 0).applyQuaternion(clone.quaternion);
+      group.add(clone);
+    }
+  });
+  return group;
 }
 
 function normalise(object) {
@@ -29,23 +62,9 @@ function normalise(object) {
   return wrapper;
 }
 function antennaFrom(source) {
-  const group = new THREE.Group();
-  // Isolate the antenna and central bus from NASA's supplied geometry. Retain the actual
-  // fittings and thermal surfaces, removing only the long solar-array and boom triangles.
-  source.traverse(mesh => {
-    if (!mesh.isMesh || /^(solar_panels|shiny_panels)$/.test(mesh.name)) return;
-    const position = mesh.geometry.attributes.position, index = mesh.geometry.index;
-    const kept = [], count = index ? index.count : position.count;
-    for (let i = 0; i < count; i += 3) {
-      const triangle = [0, 1, 2].map(j => index ? index.getX(i + j) : i + j);
-      if (triangle.every(j => Math.abs(position.getX(j)) < 1.7 && Math.abs(position.getZ(j)) < 1.8 && position.getY(j) > -1.85)) kept.push(...triangle);
-    }
-    if (!kept.length) return;
-    const clone = mesh.clone(false), filtered = mesh.geometry.clone(); filtered.setIndex(kept);
-    filtered.clearGroups(); clone.geometry = filtered.toNonIndexed(); filtered.dispose();
-    clone.geometry.computeBoundingBox(); clone.geometry.computeBoundingSphere(); group.add(clone);
-  });
-  return normalise(group);
+  // Isolate the communications bus and its reflectors from NASA's supplied geometry, removing only
+  // the long solar-array and yoke triangles beyond the bus.
+  return normalise(partition(source, (position, j) => Math.abs(position.getX(j)) < BUS_HALF_WIDTH));
 }
 
 async function createExhibit(stage) {
@@ -73,9 +92,9 @@ async function createExhibit(stage) {
     let subject, ghost, rings, paths = [], pulses = [], dishes = [], fades = [];
     const type = stage.dataset.model;
     if (type === 'spacecraft') {
-      const model = source.clone(true);
+      const model = partition(source, () => true);
       subject = normalise(model); scene.add(subject);
-      model.traverse(mesh => { if (mesh.isMesh && /^dish_/.test(mesh.name)) dishes.push({ mesh, y: mesh.position.y }); });
+      model.traverse(mesh => { if (mesh.isMesh && /^dish_/.test(mesh.name)) dishes.push({ mesh, base: mesh.position.clone() }); });
       rings = new THREE.Group();
       for (let i = 0; i < 2; i++) {
         const ring = new THREE.Mesh(new THREE.TorusGeometry(2.5 + i * .4, .006, 5, 180), new THREE.MeshBasicMaterial({ color: 0x6493a3, transparent: true, opacity: .22 }));
@@ -115,7 +134,7 @@ async function createExhibit(stage) {
       renderer.setSize(width, height, false);
       const aspect = width / height; viewWidth = aspect * 6;
       camera.left = -viewWidth / 2; camera.right = viewWidth / 2; camera.updateProjectionMatrix();
-      if (type === 'spacecraft') subject.scale.setScalar(Math.min(Math.min(viewWidth * (innerWidth < 581 ? .82 : 1.02), 10.8) * JUNO_DISPLAY_SCALE, viewWidth * (1 - JUNO_SIDE_MARGIN * 2) / JUNO_ROTATED_SPAN));
+      if (type === 'spacecraft') subject.scale.setScalar(Math.min(Math.min(viewWidth * (innerWidth < 581 ? .82 : 1.02), 10.8) * SATELLITE_DISPLAY_SCALE, viewWidth * (1 - SATELLITE_SIDE_MARGIN * 2) / SATELLITE_ROTATED_SPAN));
       if (type === 'antenna') { subject.scale.setScalar(Math.min(viewWidth * .57, 3.8)); ghost.scale.setScalar(Math.min(viewWidth * .47, 3.1)); }
       if (type === 'signal') {
         const phone = innerWidth < 581;
@@ -149,7 +168,7 @@ async function createExhibit(stage) {
       if (type === 'spacecraft') {
         subject.rotation.set(.04, -.35 + Math.sin(time * .14) * .08 + state.discipline * .4 + pointerX * .07 + drag, -.10);
         subject.position.y = Math.sin(time * .45) * .035;
-        dishes.forEach(({ mesh, y }) => { mesh.position.y = y + state.explosion * 4.7; });
+        dishes.forEach(({ mesh, base }) => { mesh.position.copy(base).addScaledVector(mesh.userData.outward, state.explosion * 14); });
         rings.rotation.y = time * .03; rings.rotation.z = state.discipline * .25;
       } else if (type === 'antenna') {
         subject.position.set(.65 + state.revision * .2, -.12, .25);

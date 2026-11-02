@@ -23,17 +23,17 @@ Reference image: documentation/satellite-kit-reference.png, from the same NASA r
 
 Static illustrations: dist/assets/satellite-fallback.svg (baseline, Rev A) and dist/assets/satellite-proposed.svg (proposed, Rev B) are locally authored schematic illustrations of the assembled concept, used for the same-camera comparison, the digest thumbnail and the contact section. The hero no longer shows the assembly, only its procedurally generated dotted globe. Reduced motion renders a still frame; if WebGL is unavailable a CSS globe is shown.
 
-## NASA Juno 3D model — engineering exhibits
+## NASA SSL-1300 3D model — communications satellite exhibits
 
-Source: https://science.nasa.gov/resource/juno-3d-model/ (direct file: https://assets.science.nasa.gov/content/dam/science/psd/solar/2023/09/j/Juno.glb, glTF dated Sep 9, 2023)
+Source: https://github.com/nasa/NASA-3D-Resources/tree/master/3D%20Models/Space%20Systems%20Loral%20(SSL-1300) (direct file: Space Systems Loral (SSL-1300).glb, 510,324 bytes, Draco-compressed glTF)
 
-Source credit: NASA Visualization Technology Applications and Development (VTAD), as stated on the NASA page. Usage follows the NASA Images and Media Usage Guidelines linked from that page (https://www.nasa.gov/nasa-brand-center/images-and-media/): NASA media is generally not subject to copyright in the United States, may be used for informational purposes, and must not imply NASA endorsement. No NASA logo, insignia or endorsement is used.
+Source credit: NASA 3D Resources. The repository describes its assets as free and without copyright; NASA Images and Media Usage Guidelines apply (https://www.nasa.gov/nasa-brand-center/images-and-media/). No NASA logo, insignia or endorsement is used. The SSL-1300 is a commercial satellite platform; the site calls it an illustrative communications satellite and implies no affiliation with its manufacturer.
 
 | Original file | Local file | Role | Modifications |
 |---|---|---|---|
-| Juno.glb (9,185,648 bytes) | dist/assets/juno/Juno.glb | Interactive spacecraft, baseline/proposed illustration and signal-to-records scene (dist/experience.js) | Source file retained unmodified. At runtime the spacecraft is centred and scaled, dish nodes separate for the capability animation, and copies of the supplied geometry are filtered to isolate the central antenna/bus assembly. A translucent baseline copy and amber edge overlay distinguish the illustrative comparison. |
+| Space Systems Loral (SSL-1300).glb | dist/assets/ssl-1300/SSL-1300.glb | Interactive spacecraft, baseline/proposed comparison and signal-to-records scene (dist/experience.js) | Source file retained unmodified. At runtime the single supplied mesh is centred and scaled, and its triangles are partitioned: the side reflectors (beyond the bus on the model's ±y axis) become separate meshes so they can separate during capability selection and carry amber edges for Rev B; the bus-only views drop the solar-array and yoke triangles. A translucent baseline copy distinguishes the illustrative comparison. |
 
-Presentation: Juno is an illustrative engineering reference, not a Mission Beacon project or flight-design comparison. The capability view carries a NASA Juno caption; the preserved footer credits NASA VTAD and states that NASA does not endorse Mission Beacon. Lighting uses Three.js RoomEnvironment and neutral studio lights. Capability selection and mouse dragging rotate the model without capturing touch scrolling. Desktop and mobile share one lazy model request; hidden views stop ambient rendering. Reduced motion initially shows still frames and removes pinned motion. If loading or WebGL fails, the existing supplied satellite SVGs remain visible. No engineering values or performance conclusions are inferred from the meshes.
+Replaces the NASA Juno model (removed; it remains in git history). Lighting uses Three.js RoomEnvironment and neutral studio lights. Reduced motion shows still frames. If loading or WebGL fails, the supplied satellite SVGs remain visible. No engineering values or performance conclusions are inferred from the meshes.
 
 The evidence sheets and record documents are selectable HTML content transformed in perspective. They are clearly illustrative, with no approval seals, fabricated numerical specifications or claims of regulatory determination. The connector tubes, scan rings and travelling light points are procedural Three.js presentation effects, not live telemetry.
 
