@@ -37,6 +37,16 @@ Replaces the NASA Juno model (removed; it remains in git history). Lighting uses
 
 The evidence sheets and record documents are selectable HTML content transformed in perspective. They are clearly illustrative, with no approval seals, fabricated numerical specifications or claims of regulatory determination. The connector tubes, scan rings and travelling light points are procedural Three.js presentation effects, not live telemetry.
 
+## NASA Earth photograph — Capabilities background
+
+Source: https://images.nasa.gov/details/iss064e002894 (original: iss064e002894~orig.jpg, 5568 × 3712)
+
+Source credit: NASA. Taken from the International Space Station on 1 November 2020 (Earth's limb above southern California, with sun glint on the Gulf of California). NASA Images and Media Usage Guidelines apply (https://www.nasa.gov/nasa-brand-center/images-and-media/); no NASA logo or endorsement is used, and the footer credits the photograph.
+
+| Original file | Local file | Role | Modifications |
+|---|---|---|---|
+| iss064e002894~orig.jpg | dist/assets/earth/earth-horizon.jpg (2400 × 1056, ~210 KB) | Space background behind Capabilities: fixed and faded in during the desktop satellite flight; the section's own background elsewhere | Top 34% cropped to remove station hardware; resized; JPEG quality 78. At runtime it is darkened, masked into a navy gradient with procedural CSS stars, and drifts slowly. |
+
 ## Locally authored materials and lighting
 
 Solar-cell texture, foil texture, environment map, radiator, reflector refinements and structural fittings are created procedurally in dist/scene.js. The hero globe, stars and orbit rings are generated procedurally in dist/space.js. No external HDRI, stock texture, AI-generated raster image, or mission-specific spacecraft identity is used. Lighting is neutral studio illumination.

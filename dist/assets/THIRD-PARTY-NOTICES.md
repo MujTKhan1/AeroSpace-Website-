@@ -17,6 +17,14 @@ https://www.nasa.gov/nasa-brand-center/images-and-media/
 
 The model file (ssl-1300/SSL-1300.glb) is served unmodified as an illustrative communications satellite in the Capabilities, change and records scenes. NASA does not endorse Mission Beacon. The model is not represented as a Mission Beacon project, a client configuration or a product of its manufacturer, and no affiliation is implied.
 
+## NASA Earth photograph
+
+ISS064-E-2894 (Nov. 1, 2020): Earth's limb above southern California and the Gulf of California, photographed from the International Space Station. Credit: NASA.
+https://images.nasa.gov/details/iss064e002894
+https://www.nasa.gov/nasa-brand-center/images-and-media/
+
+Served as earth/earth-horizon.jpg, cropped below the station hardware and resized to 2400 px wide. Used as an illustrative background only; NASA does not endorse Mission Beacon.
+
 ## Three.js
 
 Applies to three.module.js, GLTFLoader.js, DRACOLoader.js, BufferGeometryUtils.js, OrbitControls.js and RoomEnvironment.js.

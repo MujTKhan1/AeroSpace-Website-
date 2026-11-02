@@ -250,3 +250,56 @@
   .exhibit-heading h2 { font-size: clamp(54px, min(5.4vw, 9.4vh), 90px); }
   .spacecraft-exhibit { height: clamp(380px, min(39vw, 100vh - 360px), 560px); margin-top: -40px; }
 }
+
+/* Capabilities in space: a navy gradient, drifting stars and NASA's Earth horizon (ISS064-E-2894) behind a
+   light-on-dark scheme. Without the flight it is the section's own background; with it (desktop),
+   .space-backdrop holds it fixed to the screen and experience.js fades it in as the satellite arrives. */
+.exhibit-section { --space-ink: #f2f5f9; --space-muted: #b9c5d6; --space-faint: #8794a8; --space-line: rgba(255,255,255,.16); --space-cyan: #6cc4e0;
+  position: relative; color: var(--space-ink); border-top: 0;
+  /* The photo's horizon sits 21% down the image (top + 11vw at 120% width); its lower edge fades into the navy. */
+  --earth-top: calc(600px - 11vw); --earth-height: 52.8vw;
+  background: linear-gradient(180deg, transparent calc(var(--earth-top) + var(--earth-height) * .45), #0b1a35 calc(var(--earth-top) + var(--earth-height))),
+    linear-gradient(rgba(4, 9, 20, .3), rgba(4, 9, 20, .3)),
+    url(./assets/earth/earth-horizon.jpg) center var(--earth-top) / 120% auto no-repeat,
+    linear-gradient(180deg, #03060f 0%, #071226 50%, #0b1a35 100%); }
+.exhibit-section .container { position: relative; z-index: 2; }
+.exhibit-section h2, .exhibit-section h3 { color: var(--space-ink); }
+.exhibit-section h2 em, .exhibit-section .exhibit-caption, .exhibit-section .eyebrow span { color: var(--space-cyan); }
+.exhibit-section .eyebrow { color: var(--space-muted); }
+.exhibit-section .eyebrow span { border-color: var(--space-line); }
+.exhibit-section .lead { color: var(--space-muted); font-size: clamp(17px, 1.3vw, 19.5px); }
+.exhibit-section .specimen-label { color: var(--space-ink); font-size: 13px; text-shadow: 0 1px 14px rgba(2, 6, 16, .9); }
+.exhibit-section .specimen-label i { background: rgba(255,255,255,.35); }
+.exhibit-section .specimen-label i::before { background: var(--space-cyan); }
+.exhibit-section .model-credit { color: var(--space-faint); font-size: 10px; }
+.exhibit-section .motion-control { color: var(--space-muted); border-color: rgba(255,255,255,.35); }
+.exhibit-section .motion-control:hover { color: var(--space-ink); }
+.exhibit-section .discipline { border-color: var(--space-line); text-shadow: 0 1px 16px rgba(2, 6, 16, .85); }
+.exhibit-section .discipline-number { color: #5d6b82; }
+.exhibit-section .discipline.is-active .discipline-number, .exhibit-section .discipline:hover .discipline-number { color: var(--space-cyan); }
+.exhibit-section .discipline p { color: var(--space-muted); font-size: 14.5px; }
+.exhibit-section .discipline-output { color: #d6dee9; font-size: 12px; }
+.exhibit-section .discipline-output b { color: var(--space-faint); font-size: 9px; }
+.exhibit-section .exhibit-caption { font-size: 10px; }
+.space-backdrop { display: none; position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; opacity: 0; visibility: hidden;
+  background: linear-gradient(180deg, #03060f 0%, #071226 50%, #0b1a35 100%); }
+.space-stars, .space-earth { position: absolute; display: block; }
+.space-stars { inset: -10%; animation: space-drift 160s linear infinite;
+  background-image: radial-gradient(1px 1px at 12% 18%, #ffffff8c 50%, transparent 51%), radial-gradient(1px 1px at 33% 7%, #ffffff66 50%, transparent 51%), radial-gradient(1.4px 1.4px at 58% 22%, #ffffffaa 50%, transparent 51%), radial-gradient(1px 1px at 81% 12%, #ffffff77 50%, transparent 51%), radial-gradient(1px 1px at 92% 34%, #ffffff55 50%, transparent 51%), radial-gradient(1px 1px at 6% 46%, #ffffff66 50%, transparent 51%), radial-gradient(1.2px 1.2px at 47% 41%, #ffffff88 50%, transparent 51%), radial-gradient(1px 1px at 71% 52%, #ffffff55 50%, transparent 51%);
+  background-size: 340px 300px, 410px 360px, 520px 420px, 380px 330px, 450px 390px, 300px 280px, 600px 460px, 360px 340px; }
+/* The photo's horizon sits 21% down the image; this puts it about two thirds of the way down the screen. */
+.space-earth { left: -10%; width: 120%; height: 52.8vw; top: calc(66vh - 11.1vw); background: url(./assets/earth/earth-horizon.jpg) center / 100% 100% no-repeat;
+  filter: brightness(.82) saturate(.9); animation: earth-drift 90s ease-in-out infinite alternate;
+  -webkit-mask-image: linear-gradient(180deg, transparent 4%, #000 20%); mask-image: linear-gradient(180deg, transparent 4%, #000 20%); }
+.space-earth::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, rgba(4, 9, 20, .7) 80%); }
+@keyframes space-drift { to { transform: translate3d(-120px, 40px, 0); } }
+@keyframes earth-drift { from { transform: translateX(-2%); } to { transform: translateX(2%); } }
+.flight-on .space-backdrop { display: block; }
+.flight-on .exhibit-section { background: transparent; }
+@media (max-width: 899px) {
+  /* Phones: the horizon runs just below the satellite. */
+  .exhibit-section { --earth-top: 560px; --earth-height: 99vw; background-size: auto, auto, 225% auto, auto; background-position: 0 0, 0 0, 42% var(--earth-top), 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .space-stars, .space-earth { animation: none; }
+}

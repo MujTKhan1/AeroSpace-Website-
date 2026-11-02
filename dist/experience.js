@@ -392,9 +392,21 @@ function setupMotion() {
       .fromTo('.model-credit, .motion-control', { autoAlpha: 0 }, { autoAlpha: 1, duration: .6 }, .6)
       .fromTo('.discipline', { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: .8, stagger: .08, ease: 'power3.out' }, .45)
       .fromTo('#discipline-status', { autoAlpha: 0 }, { autoAlpha: 1, duration: .5 }, .9);
-    let draw, landed = false;
+    let draw, landed = false, arrival = 0;
+    // Space fades in behind the satellite over the first part of the flight (the Earth rising into place),
+    // and always ends at the bottom of Capabilities, where the paper sections continue.
+    const backdrop = document.querySelector('.space-backdrop'), earth = backdrop.querySelector('.space-earth'), capabilities = document.getElementById('capabilities');
+    function paintSpace() {
+      const bottom = capabilities.getBoundingClientRect().bottom;
+      backdrop.style.visibility = arrival > 0 && bottom > 0 ? 'visible' : 'hidden';
+      backdrop.style.opacity = arrival;
+      backdrop.style.clipPath = `inset(0 0 ${Math.max(0, innerHeight - bottom)}px 0)`;
+      earth.style.translate = `0 ${(1 - arrival) * 30}vh`;
+    }
+    const space = ScrollTrigger.create({ trigger: capabilities, start: 'top bottom', end: 'bottom top', onUpdate: paintSpace, onRefresh: paintSpace });
     function sync(self) {
       const p = self.progress;
+      arrival = THREE.MathUtils.smoothstep(p, 0, .6); paintSpace();
       root.classList.toggle('flight-moving', p > 0 && p < 1 && !!draw?.(p, self.end - self.scroll()));
       root.classList.toggle('flight-landed', p >= 1);
       if (p >= 1 && !landed) { landed = true; reveal.play(); }
@@ -405,7 +417,7 @@ function setupMotion() {
       endTrigger: '.exhibit-heading', end: 'top 76px', invalidateOnRefresh: true, refreshPriority: 2.5, onUpdate: sync, onRefresh: sync
     });
     createFlight().then(d => { draw = d; root.classList.add('flight-on'); sync(flight); }).catch(error => console.warn('Satellite flight unavailable:', error.message));
-    return () => { flight.kill(); reveal.progress(1).kill(); draw = undefined; root.classList.remove('flight-on', 'flight-moving', 'flight-landed'); state.rings = 1; state.spin = 1; refreshScenes(); };
+    return () => { flight.kill(); space.kill(); backdrop.removeAttribute('style'); earth.removeAttribute('style'); reveal.progress(1).kill(); draw = undefined; root.classList.remove('flight-on', 'flight-moving', 'flight-landed'); state.rings = 1; state.spin = 1; refreshScenes(); };
   });
   // Phones and tablets have no pin, so the revision change plays as the illustration crosses the screen.
   media.add('(max-width: 899px) and (prefers-reduced-motion: no-preference)', () => {
