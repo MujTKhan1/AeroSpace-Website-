@@ -8,7 +8,7 @@ Run `npm run dev`, then open http://127.0.0.1:4173/ . There is no build step or 
 
 ## Page structure
 
-Hero, engineering-to-regulatory gap, four interactive capabilities, baseline/proposed antenna assembly, illustrative evidence package, communications record dependencies, audiences, six-stage method, principles and contact. The page prepares evidence and questions for authorised human reviewers; it does not make legal, classification or agency determinations.
+Hero, engineering-to-regulatory gap, four interactive capabilities, baseline/proposed antenna assembly, illustrative evidence package, communications record dependencies and contact. The page prepares evidence and questions for authorised human reviewers; it does not make legal, classification or agency determinations.
 
 ## Typography
 
@@ -21,7 +21,7 @@ Space Grotesk (headings, numbers and the wordmark), DM Sans (body text) and Geis
 - Capability selection turns the NASA SSL-1300 communications satellite and briefly separates its side reflectors; mouse dragging rotates it. A shared pause control stops ambient motion in the new 3D scenes.
 - On desktop, the change/evidence stage stays in place. The old foreground dissolves, document sheets assemble, then the new heading and document text reveal independently. Scrolling back reverses the sequence; explicit forward/back controls are also provided.
 - The navy scene draws 3D connections from an illustrative communications assembly to classification, spectrum and licence records, with travelling light pulses and document reveals.
-- The six-stage method travels horizontally on desktop, with direct stage navigation. On mobile it becomes a touch-scrollable guide, and the change/evidence panels stack vertically.
+- On mobile the change/evidence panels stack vertically.
 - WebGL exhibits load near the viewport, share one source-model request and stop ambient rendering when hidden or paused. The new cropped antenna geometry is derived at runtime from NASA's supplied SSL-1300 mesh (bus and reflectors, without the solar arrays).
 - `prefers-reduced-motion` turns off smooth scrolling, scroll animations and automatic 3D motion. A CSS globe is shown if WebGL is unavailable.
 
@@ -35,7 +35,7 @@ The form validates required fields in the browser but is not connected to an inq
 - `dist/styles.css` — design tokens, layout and responsive styles
 - `dist/main.js` — Lenis, GSAP ScrollTrigger animations, navigation and form
 - `dist/space.js` — Three.js hero scene
-- `dist/experience.js` — new Three.js exhibits, cinematic transition and horizontal method
+- `dist/experience.js` — new Three.js exhibits, cinematic transition
 - `dist/experience.css` — layouts and responsive styles for those sections
 
 Sources, licences and modifications are recorded in [ASSET-REGISTER.md](ASSET-REGISTER.md). `npm run check` verifies JavaScript syntax.

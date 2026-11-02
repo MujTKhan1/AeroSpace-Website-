@@ -264,32 +264,12 @@ function scrollToPosition(top) {
   if (shared.lenis) shared.lenis.scrollTo(top, { duration: 1.5, offset: 0 });
   else window.scrollTo({ top, behavior: reduced.matches ? 'auto' : 'smooth' });
 }
-let changeTrigger, methodTrigger;
+let changeTrigger;
 document.querySelector('.scene-next').addEventListener('click', () => {
   if (changeTrigger) scrollToPosition(changeTrigger.start + (changeTrigger.end - changeTrigger.start) * .97);
   else document.getElementById('evidence').scrollIntoView({ behavior: reduced.matches ? 'auto' : 'smooth', block: 'start' });
 });
 document.querySelector('.scene-back').addEventListener('click', () => changeTrigger && scrollToPosition(changeTrigger.start + 12));
-const methodButtons = [...document.querySelectorAll('[data-method]')];
-function methodActive(index) {
-  methodButtons.forEach((button, i) => button.setAttribute('aria-pressed', String(i === index)));
-  document.querySelectorAll('.method-step').forEach((step, i) => step.classList.toggle('is-active', i === index));
-  document.querySelector('.method-navigation').style.setProperty('--method-progress', index / 5);
-}
-methodActive(0);
-document.querySelector('.method-window').addEventListener('scroll', event => {
-  if (methodTrigger) return;
-  const viewport = event.currentTarget, distance = viewport.scrollWidth - viewport.clientWidth;
-  if (distance > 0) methodActive(Math.min(5, Math.round(viewport.scrollLeft / distance * 5)));
-}, { passive: true });
-methodButtons.forEach((button, i) => button.addEventListener('click', () => {
-  if (methodTrigger) scrollToPosition(methodTrigger.start + (methodTrigger.end - methodTrigger.start) * (i / 5));
-  else {
-    const track = document.querySelector('.method-window'), step = document.querySelectorAll('.method-step')[i];
-    track.scrollTo({ left: step.offsetLeft - track.offsetLeft, behavior: reduced.matches ? 'auto' : 'smooth' }); methodActive(i);
-  }
-}));
-
 function setupMotion() {
   if (!window.gsap || !window.ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
@@ -351,18 +331,9 @@ function setupMotion() {
       .to('.chapter-progress i', { scaleX: 1, duration: total, ease: 'none' }, 0);
     syncRevision();
 
-    const methodStage = document.querySelector('.method-stage'); methodStage.classList.add('is-guided');
-    const windowEl = document.querySelector('.method-window'), track = document.querySelector('.method-track');
-    const distance = () => Math.max(0, track.scrollWidth - windowEl.clientWidth);
-    const guide = gsap.to(track, { x: () => -distance(), ease: 'none', scrollTrigger: {
-      trigger: '.method-experience', start: 'top 64px', end: () => `+=${distance() * 1.15}`,
-      pin: '.method-stage', scrub: .8, invalidateOnRefresh: true, refreshPriority: 1,
-      onUpdate: self => { methodActive(Math.min(5, Math.round(self.progress * 5))); document.querySelector('.method-navigation').style.setProperty('--method-progress', self.progress); }
-    } });
-    methodTrigger = guide.scrollTrigger;
-    return () => { stage.classList.remove('is-cinematic'); methodStage.classList.remove('is-guided'); evidence.inert = false; document.querySelector('.change-panel').inert = false; state.antennaVisible = true; state.revision = 1; syncRevision(); changeTrigger = undefined; methodTrigger = undefined; };
+    return () => { stage.classList.remove('is-cinematic'); evidence.inert = false; document.querySelector('.change-panel').inert = false; state.antennaVisible = true; state.revision = 1; syncRevision(); changeTrigger = undefined; };
   });
-  // Refresh the upstream pins before the preserved footer's contact pin.
+  // Refresh the change pin before the preserved footer's contact pin.
   ScrollTrigger.sort();
   ScrollTrigger.refresh();
 }

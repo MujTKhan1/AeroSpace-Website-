@@ -148,16 +148,6 @@
   gsap.utils.toArray('.reveal').forEach(el => {
     gsap.from(el, { y: 30, autoAlpha: 0, duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 88%' } });
   });
-  // Audiences: each row's hairline draws, then the role slides in from the left and the need from the right.
-  const audTl = gsap.timeline({ scrollTrigger: { trigger: '.aud-table', start: 'top 80%' } });
-  gsap.utils.toArray('.aud-row').forEach((row, i) => {
-    const at = i * .12;
-    audTl.fromTo(row, { '--line': 0 }, { '--line': 1, duration: 1, ease: 'expo.out' }, at)
-      .from(row.querySelector('.aud-who'), { x: -60, autoAlpha: 0, duration: 1, ease: 'expo.out' }, at + .12)
-      .from(row.querySelector('.aud-need'), { x: 60, autoAlpha: 0, duration: 1, ease: 'expo.out' }, at + .18)
-      .from(row.querySelector('.aud-arrow'), { scale: 0, autoAlpha: 0, duration: .6, ease: 'back.out(3)', clearProps: 'transform' }, at + .3);
-  });
-
   // Gap: the engineering record draws from Rev A to Rev B with scroll; the regulatory record stays at Rev A.
   const trace = document.querySelector('.trace');
   const traceSteps = trace.querySelectorAll('.trace-eng .trace-item, .trace-eng .trace-node-b');
@@ -174,21 +164,6 @@
     autoAlpha: 0, y: 8, duration: .9, ease: 'expo.out', stagger: .07,
     scrollTrigger: { trigger: trace, start: 'top 72%' }
   });
-
-  // Statement: words brighten as it scrolls through.
-  const statement = document.querySelector('.statement-text');
-  statement.setAttribute('aria-label', statement.textContent.trim());
-  splitWords(statement);
-  statement.querySelectorAll('.w').forEach(w => w.setAttribute('aria-hidden', 'true'));
-  gsap.fromTo(statement.querySelectorAll('.w > span'), { opacity: .15 }, {
-    opacity: 1, ease: 'none', stagger: .1,
-    scrollTrigger: { trigger: statement, start: 'top 80%', end: 'bottom 45%', scrub: true }
-  });
-
-  // Principles: the dividing rule draws, then both lists settle in.
-  gsap.timeline({ scrollTrigger: { trigger: '.principle-split', start: 'top 75%' } })
-    .from('.principle-rule', { scale: 0, transformOrigin: 'top left', duration: 1.2, ease: 'expo.inOut' })
-    .from('.plain-list li', { autoAlpha: 0, y: 14, duration: .9, ease: 'expo.out', stagger: .06 }, .3);
 
   const mm = gsap.matchMedia();
   mm.add('(min-width: 861px)', () => {
