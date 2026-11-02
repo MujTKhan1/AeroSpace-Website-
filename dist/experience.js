@@ -457,7 +457,15 @@ function setupMotion() {
     // That transition keeps its own timings and scroll length, shifted to start after the hold.
     const revisionStart = .05, revisionEnd = .29, evidenceStart = .37;
     const at = time => time - .19 + evidenceStart;
-    const total = at(1);
+    // The sequence runs past the closed file: after a short hold the binder leaves and the copy takes centre stage.
+    const total = at(1.34);
+    // How far the evidence copy must move (and how much it can grow) to sit in the middle of the screen below the header.
+    function centreOffset() {
+      const copy = document.querySelector('.evidence-panel .chapter-copy'), r = copy.getBoundingClientRect();
+      const x = gsap.getProperty(copy, 'x'), y = gsap.getProperty(copy, 'y');
+      const scale = Math.min(1.3, innerWidth * .8 / copy.offsetWidth, (innerHeight - 180) / copy.offsetHeight);
+      return { x: innerWidth / 2 - (r.left + r.width / 2 - x), y: (innerHeight + 64) / 2 - (r.top + r.height / 2 - y), scale };
+    }
     const sequence = gsap.timeline({
       // Timeline time, not scroll progress: scrub trails the scroll, and these states must follow what is on screen.
       onUpdate: () => {
@@ -487,7 +495,10 @@ function setupMotion() {
       .fromTo('.binder-tab', { autoAlpha: 0, x: -14 }, { autoAlpha: 1, x: 0, duration: .05, ease: 'power2.out' }, at(.84))
       .fromTo('.binder-stamp', { autoAlpha: 0, scale: 1.7 }, { autoAlpha: 1, scale: 1, duration: .05, ease: 'back.out(2.2)' }, at(.86))
       .to('.scene-back', { autoAlpha: 1, duration: .1 }, at(.81))
-      .to({}, { duration: .12 }, at(.88))
+      // Hold on the stamped file, then the binder slides away and the copy moves to the middle, enlarged to fit.
+      .to('.evidence-panel .paper-theatre', { xPercent: 110, autoAlpha: 0, duration: .16, ease: 'power2.in' }, at(1))
+      .to('.evidence-panel .chapter-copy', { x: () => centreOffset().x, y: () => centreOffset().y, scale: () => centreOffset().scale, duration: .18, ease: 'power2.inOut' }, at(1.06))
+      .to({}, { duration: .1 }, at(1.24))
       .to('.chapter-progress i', { scaleX: 1, duration: total, ease: 'none' }, 0);
     syncRevision();
 
