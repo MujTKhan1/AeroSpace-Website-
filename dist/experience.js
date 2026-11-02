@@ -12,6 +12,10 @@ const SATELLITE_DISPLAY_SCALE = .9;
 const SATELLITE_ROTATED_SPAN = 1.05, SATELLITE_SIDE_MARGIN = .05;
 // NASA's SSL-1300 file is one mesh in local units (solar arrays along x, reflectors beyond the bus on ±y).
 const BUS_HALF_WIDTH = 19, REFLECTOR_MIN_Y = 15.5;
+// Gap build-up: the scroll range (of the trace's progress) over which each part turns from drawing to hardware.
+// Reflectors with the controlled drawing, the bus with the bill of materials, its fittings with the software
+// and interface steps, and the solar arrays last, as the record reaches Rev B.
+const GAP_BUILD = { dish: [.04, .3], bus: [.26, .52], fitting: [.5, .8], array: [.72, .98] };
 let modelPromise, recordsTimeline;
 function loadSpacecraft() {
   if (!modelPromise) {
@@ -89,9 +93,24 @@ async function createExhibit(stage) {
     const camera = new THREE.OrthographicCamera(-6, 6, 3, -3, .1, 100);
     camera.position.set(0, 4, 12); camera.lookAt(0, 0, 0);
     const source = await loadSpacecraft();
-    let subject, ghost, rings, paths = [], pulses = [], dishes = [], fades = [];
+    let subject, ghost, rings, paths = [], pulses = [], dishes = [], fades = [], highlights = [];
     const type = stage.dataset.model;
-    if (type === 'spacecraft') {
+    if (type === 'gap') {
+      // The satellite starts as a line drawing and becomes hardware part by part as the engineering record
+      // fills. Solid parts sit on their own material copies so the other exhibits are untouched.
+      subject = normalise(partition(source, () => true)); scene.add(subject);
+      const lines = new THREE.LineBasicMaterial({ color: 0x1f7ea1, transparent: true, opacity: .5 });
+      subject.traverse(mesh => {
+        if (!mesh.isMesh) return;
+        const name = mesh.material.name;
+        const part = /^dish_/.test(mesh.name) ? 'dish' : /SolarPanel(?!-Bracket)/.test(name) ? 'array' : /Bracket|SensorNips|MainBoxDetail|Stereo|Gold/.test(name) ? 'fitting' : 'bus';
+        mesh.material = mesh.material.clone();
+        const edge = lines.clone();
+        mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, 40), edge));
+        // The arrays' many cell edges would read as a solid block, so their lines are lighter.
+        highlights.push({ range: GAP_BUILD[part], material: mesh.material, edge, ink: part === 'array' ? .16 : .55 });
+      });
+    } else if (type === 'spacecraft') {
       const model = partition(source, () => true);
       subject = normalise(model); scene.add(subject);
       model.traverse(mesh => { if (mesh.isMesh && /^dish_/.test(mesh.name)) dishes.push({ mesh, base: mesh.position.clone() }); });
@@ -136,6 +155,8 @@ async function createExhibit(stage) {
       camera.left = -viewWidth / 2; camera.right = viewWidth / 2; camera.updateProjectionMatrix();
       if (type === 'spacecraft') subject.scale.setScalar(Math.min(Math.min(viewWidth * (innerWidth < 581 ? .82 : 1.02), 10.8) * SATELLITE_DISPLAY_SCALE, viewWidth * (1 - SATELLITE_SIDE_MARGIN * 2) / SATELLITE_ROTATED_SPAN));
       if (type === 'antenna') { subject.scale.setScalar(Math.min(viewWidth * .57, 3.8)); ghost.scale.setScalar(Math.min(viewWidth * .47, 3.1)); }
+      // The arrays may run past the stage edges so the bus and its reflectors read at a useful size.
+      if (type === 'gap') subject.scale.setScalar(Math.min(viewWidth * 1.35, 11));
       if (type === 'signal') {
         const phone = innerWidth < 581;
         subject.position.set(phone ? 0 : -viewWidth * .34, .1, 0); subject.scale.setScalar(phone ? 3.2 : 3.4);
@@ -165,7 +186,18 @@ async function createExhibit(stage) {
       draw();
     }
     function draw() {
-      if (type === 'spacecraft') {
+      if (type === 'gap') {
+        // Without the scroll timeline (reduced motion, no GSAP) the exhibit shows the finished satellite.
+        const progress = shared.gap ?? 1;
+        highlights.forEach(({ range, material, edge, ink }) => {
+          const built = THREE.MathUtils.smoothstep(progress, range[0], range[1]);
+          const solid = built > .99;
+          if (material.transparent === solid) { material.transparent = !solid; material.needsUpdate = true; }
+          material.opacity = built; material.depthWrite = solid; material.visible = built > .01;
+          edge.opacity = ink * (1 - built) + .03;
+        });
+        subject.rotation.set(.3, -.62 + Math.sin(time * .2) * .04 + progress * .12, -.1);
+      } else if (type === 'spacecraft') {
         subject.rotation.set(.04, -.35 + Math.sin(time * .14) * .08 + state.discipline * .4 + pointerX * .07 + drag, -.10);
         subject.position.y = Math.sin(time * .45) * .035;
         dishes.forEach(({ mesh, base }) => { mesh.position.copy(base).addScaledVector(mesh.userData.outward, state.explosion * 14); });
@@ -209,6 +241,7 @@ async function createExhibit(stage) {
     new ResizeObserver(layout).observe(stage);
     new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; update(); }, { rootMargin: '80px' }).observe(stage);
     document.addEventListener('visibilitychange', update);
+    if (type === 'gap') addEventListener('beacon:gap', update);
     if (type === 'spacecraft') {
       canvas.style.touchAction = 'pan-y';
       canvas.addEventListener('pointermove', e => { const r = canvas.getBoundingClientRect(); pointerX = (e.clientX - r.left) / r.width - .5; if (dragStart !== undefined) { drag += (e.clientX - dragStart) * .006; dragStart = e.clientX; } if (state.paused) draw(); });

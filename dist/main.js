@@ -93,6 +93,7 @@
       shared.hero = Math.min(Math.max(scrollY / innerHeight, 0), 1);
       dispatchEvent(new Event('beacon:scroll'));
     }, { passive: true });
+    document.querySelectorAll('.gap-changes li').forEach(li => li.classList.add('is-on'));
     return;
   }
 
@@ -151,15 +152,27 @@
   // Gap: the engineering record draws from Rev A to Rev B with scroll; the regulatory record stays at Rev A.
   const trace = document.querySelector('.trace');
   const traceSteps = trace.querySelectorAll('.trace-eng .trace-item, .trace-eng .trace-node-b');
-  trace.classList.add('is-live');
-  gsap.timeline({
-    scrollTrigger: { trigger: trace, start: 'top 85%', end: 'top 30%', scrub: .6 },
-    onUpdate() {
-      const p = this.progress();
-      traceSteps.forEach((el, i) => el.classList.toggle('is-on', p >= (i === traceSteps.length - 1 ? .98 : (i + .5) / (traceSteps.length - 1))));
-      trace.classList.toggle('is-done', p >= .98);
-    }
-  }).fromTo('.trace-fill', { '--p': 0 }, { '--p': 1, ease: 'none' });
+  // The satellite above the trace changes part by part with the same steps (experience.js reads shared.gap).
+  const gap = document.querySelector('.gap'), gapChanges = gap.querySelectorAll('.gap-changes li');
+  trace.classList.add('is-live'); gap.classList.add('is-gap-live');
+  shared.gap = 0;
+  // On desktop the section holds still, centred below the header, until the trace has played, so the
+  // satellite and both rows are on screen together; phones and very short screens play it as it scrolls past.
+  gsap.matchMedia().add({ pinned: '(min-width: 900px) and (min-height: 640px)', free: '(max-width: 899px), (max-height: 639px)' }, ({ conditions }) => {
+    const scrollTrigger = conditions.pinned
+      ? { trigger: '.gap .container', start: () => `center ${Math.round((innerHeight + 64) / 2)}px`, end: () => `+=${innerHeight * 1.3}`, pin: true, scrub: .6, invalidateOnRefresh: true, refreshPriority: 3 }
+      : { trigger: trace, start: 'top 85%', end: 'top 30%', scrub: .6 };
+    gsap.timeline({
+      scrollTrigger,
+      onUpdate() {
+        const p = this.progress();
+        traceSteps.forEach((el, i) => el.classList.toggle('is-on', p >= (i === traceSteps.length - 1 ? .98 : (i + .5) / (traceSteps.length - 1))));
+        gapChanges.forEach((el, i) => el.classList.toggle('is-on', p >= (i + .5) / (traceSteps.length - 1)));
+        trace.classList.toggle('is-done', p >= .98); gap.classList.toggle('is-gap-done', p >= .98);
+        shared.gap = p; dispatchEvent(new Event('beacon:gap'));
+      }
+    }).fromTo('.trace-fill', { '--p': 0 }, { '--p': 1, ease: 'none' });
+  });
   gsap.from('.trace-reg .trace-item, .trace-reg .trace-node, .trace-reg .trace-rail', {
     autoAlpha: 0, y: 8, duration: .9, ease: 'expo.out', stagger: .07,
     scrollTrigger: { trigger: trace, start: 'top 72%' }

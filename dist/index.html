@@ -71,10 +71,25 @@
       <!-- 02 Gap -->
       <section class="section gap" id="gap" aria-labelledby="gap-title">
         <div class="container">
-          <div class="section-head">
-            <p class="eyebrow mono"><span>01</span>The gap</p>
-            <h2 id="gap-title" class="split">The drawing changed. <em>Did the regulatory record change with it?</em></h2>
-            <p class="lead reveal">Engineering records show what has changed in the design. Regulatory records may still describe an earlier configuration. We establish the technical difference, identify the records that depend on it and prepare the questions that require review.</p>
+          <div class="gap-head">
+            <div class="section-head">
+              <p class="eyebrow mono"><span>01</span>The gap</p>
+              <h2 id="gap-title" class="split">The drawing changed. <em>Did the regulatory record change with it?</em></h2>
+              <p class="lead reveal">Engineering records show what has changed in the design. Regulatory records may still describe an earlier configuration. We establish the technical difference, identify the records that depend on it and prepare the questions that require review.</p>
+            </div>
+            <figure class="gap-visual" aria-label="Illustrative satellite: a line drawing becomes the complete proposed Rev B design as the engineering record changes">
+              <div class="gap-exhibit" data-model="gap">
+                <img class="model-fallback" src="./assets/satellite-proposed.svg" alt="" width="800" height="680">
+                <p class="gap-tag gap-tag-b mono"><b>Rev B</b> Proposed design</p>
+                <p class="gap-tag gap-tag-a mono"><b>Controlled drawing</b> Proposed change in progress</p>
+              </div>
+              <ul class="gap-changes mono" aria-label="Changed characteristics">
+                <li data-step="0">Reflector geometry</li>
+                <li data-step="1">Hardware parts</li>
+                <li data-step="2">Software mode</li>
+                <li data-step="3">Interfaces</li>
+              </ul>
+            </figure>
           </div>
           <div class="trace" role="group" aria-label="Illustrative diagram: the engineering record has moved from Rev A to Rev B while the regulatory records still describe Rev A">
             <div class="trace-row trace-eng">
