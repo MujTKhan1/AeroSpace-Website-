@@ -158,20 +158,28 @@
   shared.gap = 0;
   // On desktop the section holds still, centred below the header, until the trace has played, so the
   // satellite and both rows are on screen together; phones and very short screens play it as it scrolls past.
+  // While held, the last part of the scroll clears the text so only the satellite is left: experience.js
+  // then carries it into Capabilities (shared.gapPin marks where that flight begins).
   gsap.matchMedia().add({ pinned: '(min-width: 900px) and (min-height: 640px)', free: '(max-width: 899px), (max-height: 639px)' }, ({ conditions }) => {
+    const build = conditions.pinned ? .7 : 1;
     const scrollTrigger = conditions.pinned
-      ? { trigger: '.gap .container', start: () => `center ${Math.round((innerHeight + 64) / 2)}px`, end: () => `+=${innerHeight * 1.3}`, pin: true, scrub: .6, invalidateOnRefresh: true, refreshPriority: 3 }
+      ? { trigger: '.gap .container', start: () => `center ${Math.round((innerHeight + 64) / 2)}px`, end: () => `+=${innerHeight * 1.9}`, pin: true, scrub: .6, invalidateOnRefresh: true, refreshPriority: 3 }
       : { trigger: trace, start: 'top 85%', end: 'top 30%', scrub: .6 };
-    gsap.timeline({
+    const timeline = gsap.timeline({
       scrollTrigger,
       onUpdate() {
-        const p = this.progress();
+        const p = Math.min(this.time() / build, 1);
         traceSteps.forEach((el, i) => el.classList.toggle('is-on', p >= (i === traceSteps.length - 1 ? .98 : (i + .5) / (traceSteps.length - 1))));
         gapChanges.forEach((el, i) => el.classList.toggle('is-on', p >= (i + .5) / (traceSteps.length - 1)));
         trace.classList.toggle('is-done', p >= .98); gap.classList.toggle('is-gap-done', p >= .98);
         shared.gap = p; dispatchEvent(new Event('beacon:gap'));
       }
-    }).fromTo('.trace-fill', { '--p': 0 }, { '--p': 1, ease: 'none' });
+    }).fromTo('.trace-fill', { '--p': 0 }, { '--p': 1, ease: 'none', duration: build }, 0);
+    if (!conditions.pinned) return;
+    timeline.to('.gap .section-head, .gap-changes, .gap-tag, .trace, .gap .note', { autoAlpha: 0, y: -28, ease: 'power2.in', duration: .16, stagger: .02 }, .78)
+      .to({}, { duration: .04 });
+    shared.gapPin = timeline.scrollTrigger;
+    return () => { shared.gapPin = undefined; };
   });
   gsap.from('.trace-reg .trace-item, .trace-reg .trace-node, .trace-reg .trace-rail', {
     autoAlpha: 0, y: 8, duration: .9, ease: 'expo.out', stagger: .07,

@@ -5,9 +5,13 @@ import { RoomEnvironment } from './assets/RoomEnvironment.js';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const shared = (window.__beacon ||= { hero: 0 });
-const state = { paused: reduced.matches, discipline: 0, explosion: 0, revision: 1, signal: 1, antennaVisible: true };
+const state = { paused: reduced.matches, discipline: 0, explosion: 0, revision: 1, signal: 1, antennaVisible: true, rings: 1, spin: 1 };
 const scenes = [];
-const SATELLITE_DISPLAY_SCALE = .9;
+// Each exhibit reports where its satellite is on screen, so the gap-to-Capabilities flight can start and land on them.
+const poses = {};
+const SATELLITE_DISPLAY_SCALE = .99;
+// Slow horizontal turn of the settled Capabilities satellite, in radians per second (about 40 s a turn).
+const SATELLITE_SPIN = .15;
 // Widest the normalised satellite gets at any rotation; narrow stages keep this 5% side margin however it is turned.
 const SATELLITE_ROTATED_SPAN = 1.05, SATELLITE_SIDE_MARGIN = .05;
 // NASA's SSL-1300 file is one mesh in local units (solar arrays along x, reflectors beyond the bus on ±y).
@@ -71,27 +75,34 @@ function antennaFrom(source) {
   return normalise(partition(source, (position, j) => Math.abs(position.getX(j)) < BUS_HALF_WIDTH));
 }
 
+// One renderer, studio lighting and camera angle shared by every exhibit, so the satellite looks the same in each.
+function studio(canvas) {
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'low-power' });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+  const scene = new THREE.Scene();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const room = new RoomEnvironment();
+  const environment = pmrem.fromScene(room, .04);
+  scene.environment = environment.texture; scene.environmentIntensity = .8;
+  pmrem.dispose(); room.dispose();
+  scene.add(new THREE.AmbientLight(0xffffff, .5));
+  const key = new THREE.DirectionalLight(0xffffff, 2.6); key.position.set(4, 8, 5); scene.add(key);
+  const fill = new THREE.DirectionalLight(0xd8e7f2, 1.3); fill.position.set(-6, 1, 4); scene.add(fill);
+  const rim = new THREE.DirectionalLight(0xffffff, 2); rim.position.set(0, 5, -5); scene.add(rim);
+  const camera = new THREE.OrthographicCamera(-6, 6, 3, -3, .1, 100);
+  camera.position.set(0, 4, 12); camera.lookAt(0, 0, 0);
+  return { renderer, scene, camera };
+}
+
 async function createExhibit(stage) {
   let renderer;
   try {
     const canvas = document.createElement('canvas'); canvas.setAttribute('aria-hidden', 'true');
-    renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'low-power' });
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
-    const scene = new THREE.Scene();
-    const pmrem = new THREE.PMREMGenerator(renderer);
-    const room = new RoomEnvironment();
-    const environment = pmrem.fromScene(room, .04);
-    scene.environment = environment.texture; scene.environmentIntensity = .8;
-    pmrem.dispose(); room.dispose();
-    scene.add(new THREE.AmbientLight(0xffffff, .5));
-    const key = new THREE.DirectionalLight(0xffffff, 2.6); key.position.set(4, 8, 5); scene.add(key);
-    const fill = new THREE.DirectionalLight(0xd8e7f2, 1.3); fill.position.set(-6, 1, 4); scene.add(fill);
-    const rim = new THREE.DirectionalLight(0xffffff, 2); rim.position.set(0, 5, -5); scene.add(rim);
-    const camera = new THREE.OrthographicCamera(-6, 6, 3, -3, .1, 100);
-    camera.position.set(0, 4, 12); camera.lookAt(0, 0, 0);
+    let scene, camera;
+    ({ renderer, scene, camera } = studio(canvas));
     const source = await loadSpacecraft();
     let subject, ghost, rings, paths = [], pulses = [], dishes = [], fades = [], highlights = [];
     const type = stage.dataset.model;
@@ -141,7 +152,7 @@ async function createExhibit(stage) {
     } else {
       subject = antennaFrom(source); scene.add(subject);
     }
-    let width = 1, height = 1, viewWidth = 12, visible = false, frameId = 0, time = 0, last = performance.now(), pointerX = 0, drag = 0, dragStart;
+    let width = 1, height = 1, viewWidth = 12, visible = false, frameId = 0, time = 0, turn = 0, last = performance.now(), pointerX = 0, drag = 0, dragStart;
     function clearPaths() {
       for (const line of paths) { scene.remove(line); line.geometry.dispose(); line.material.dispose(); }
       for (const pulse of pulses) { scene.remove(pulse); pulse.geometry.dispose(); pulse.material.dispose(); }
@@ -198,10 +209,11 @@ async function createExhibit(stage) {
         });
         subject.rotation.set(.3, -.62 + Math.sin(time * .2) * .04 + progress * .12, -.1);
       } else if (type === 'spacecraft') {
-        subject.rotation.set(.04, -.35 + Math.sin(time * .14) * .08 + state.discipline * .4 + pointerX * .07 + drag, -.10);
+        subject.rotation.set(.04, -.35 + turn + Math.sin(time * .14) * .08 + state.discipline * .4 + pointerX * .07 + drag, -.10);
         subject.position.y = Math.sin(time * .45) * .035;
         dishes.forEach(({ mesh, base }) => { mesh.position.copy(base).addScaledVector(mesh.userData.outward, state.explosion * 14); });
         rings.rotation.y = time * .03; rings.rotation.z = state.discipline * .25;
+        rings.children.forEach(ring => { ring.material.opacity = .22 * state.rings; });
       } else if (type === 'antenna') {
         subject.position.set(.65 + state.revision * .2, -.12, .25);
         subject.rotation.y = -.48 + Math.sin(time * .15) * .025;
@@ -228,7 +240,9 @@ async function createExhibit(stage) {
     function frame(now) {
       frameId = 0;
       if (!visible || document.hidden || state.paused || (type === 'antenna' && !state.antennaVisible)) return;
-      time += Math.min((now - last) / 1000, .05); last = now;
+      const step = Math.min((now - last) / 1000, .05); time += step; last = now;
+      // state.spin eases in once the flight has landed (and out when it leaves), so the turn never starts abruptly.
+      if (type === 'spacecraft') turn = (turn + step * SATELLITE_SPIN * state.spin) % (Math.PI * 2);
       draw(); frameId = requestAnimationFrame(frame);
     }
     function update() {
@@ -249,12 +263,52 @@ async function createExhibit(stage) {
       canvas.addEventListener('pointerup', () => { dragStart = undefined; });
       canvas.addEventListener('pointercancel', () => { dragStart = undefined; });
     }
+    // In screen pixels: where the stage is, how many pixels one scene unit spans, and the satellite's pose.
+    if (type === 'gap' || type === 'spacecraft') poses[type] = () => ({ rect: stage.getBoundingClientRect(), unit: height / 6, scale: subject.scale.x, rotation: subject.rotation, position: subject.position });
     scenes.push({ update, layout }); layout();
   } catch (error) {
     renderer?.dispose();
     console.warn('Engineering exhibit keeps its static reference:', error.message);
     stage.classList.add('model-unavailable');
   }
+}
+
+// Desktop: the finished gap satellite flies to its place in Capabilities. A fixed overlay draws it between the
+// two exhibits' poses while their own canvases are hidden, so the hand-off at either end is invisible.
+async function createFlight() {
+  const canvas = document.createElement('canvas'); canvas.className = 'flight-canvas'; canvas.setAttribute('aria-hidden', 'true');
+  const { renderer, scene, camera } = studio(canvas);
+  const model = partition(await loadSpacecraft(), () => true);
+  const subject = normalise(model); scene.add(subject);
+  const dishes = [];
+  model.traverse(mesh => { if (mesh.isMesh && /^dish_/.test(mesh.name)) dishes.push({ mesh, base: mesh.position.clone() }); });
+  document.body.append(canvas);
+  const mix = (a, b, t) => a + (b - a) * t;
+  // Where the gap satellite sits while its section is held: its live position, moved back to the held place
+  // once the section has been released and scrolled away.
+  function start() {
+    const pose = poses.gap(), container = document.querySelector('.gap .container').getBoundingClientRect();
+    const shift = (innerHeight + 64) / 2 - container.height / 2 - container.top;
+    return { ...pose, x: pose.rect.left + pose.rect.width / 2, y: pose.rect.top + pose.rect.height / 2 + shift };
+  }
+  // `remaining` is the scroll left until landing: the satellite heads for where Capabilities will put it, not
+  // where that section is mid-scroll, so it travels in one straight sweep.
+  return (progress, remaining) => {
+    if (!poses.gap || !poses.spacecraft) return false;
+    const from = start(), to = poses.spacecraft(), t = progress * progress * (3 - 2 * progress);
+    to.x = to.rect.left + to.rect.width / 2; to.y = to.rect.top + to.rect.height / 2 - remaining;
+    const unit = mix(from.unit, to.unit, t), x = mix(from.x, to.x, t), y = mix(from.y, to.y, t);
+    renderer.setSize(innerWidth, innerHeight, false);
+    camera.left = -x / unit; camera.right = (innerWidth - x) / unit; camera.top = y / unit; camera.bottom = -(innerHeight - y) / unit;
+    camera.updateProjectionMatrix();
+    subject.scale.setScalar(mix(from.scale * from.unit, to.scale * to.unit, t) / unit);
+    const turnY = Math.atan2(Math.sin(to.rotation.y - from.rotation.y), Math.cos(to.rotation.y - from.rotation.y));
+    subject.rotation.set(mix(from.rotation.x, to.rotation.x, t), from.rotation.y + turnY * t, mix(from.rotation.z, to.rotation.z, t));
+    subject.position.set(...['x', 'y', 'z'].map(k => mix(from.position[k] * from.unit, to.position[k] * to.unit, t) / unit));
+    dishes.forEach(({ mesh, base }) => { mesh.position.copy(base).addScaledVector(mesh.userData.outward, state.explosion * 14 * t); });
+    renderer.render(scene, camera);
+    return true;
+  };
 }
 
 const nearby = new IntersectionObserver(entries => entries.forEach(entry => {
@@ -311,14 +365,47 @@ function setupMotion() {
   const media = gsap.matchMedia();
   media.add('(prefers-reduced-motion: no-preference)', () => {
     gsap.fromTo(state, { explosion: 0 }, { explosion: .85, ease: 'none', onUpdate: refreshScenes, scrollTrigger: { trigger: '.spacecraft-exhibit', start: 'top 78%', end: 'bottom 30%', scrub: .8 } });
-    gsap.from('.specimen-label', { opacity: 0, duration: 1.1, stagger: .15, scrollTrigger: { trigger: '.spacecraft-exhibit', start: 'top 65%' } });
-    gsap.from('.discipline', { opacity: 0, duration: .9, stagger: .1, scrollTrigger: { trigger: '.discipline-grid', start: 'top 88%' } });
     // One scrubbed timeline for the records and connectors: it finishes with the diagram on screen, leaves
     // them assembled while the section is read, and runs backwards and forwards on every pass.
     recordsTimeline = gsap.timeline({ onUpdate: refreshScenes, scrollTrigger: { trigger: '.signal-diagram', start: 'top 85%', end: 'center 52%', scrub: .7, onRefresh: () => scenes.forEach(scene => scene.layout()) } })
       .from('.record-sheet', { opacity: 0, rotationY: -65, x: 45, duration: .62, stagger: .19, ease: 'power3.out' }, 0)
       .fromTo(state, { signal: 0 }, { signal: 1, duration: 1, ease: 'none' }, 0);
     return () => { recordsTimeline = undefined; state.signal = 1; refreshScenes(); };
+  });
+  // Without the flight, the labels and service cards reveal as they scroll into view.
+  media.add('(prefers-reduced-motion: no-preference) and (max-width: 899px), (prefers-reduced-motion: no-preference) and (max-height: 639px)', () => {
+    gsap.from('.specimen-label', { opacity: 0, duration: 1.1, stagger: .15, scrollTrigger: { trigger: '.spacecraft-exhibit', start: 'top 65%' } });
+    gsap.from('.discipline', { opacity: 0, duration: .9, stagger: .1, scrollTrigger: { trigger: '.discipline-grid', start: 'top 88%' } });
+  });
+  // Desktop: after the gap section clears (main.js), its satellite flies into Capabilities. The Capabilities
+  // text, rings, labels and service cards stay hidden until it lands, then build around it; scrolling
+  // back reverses both.
+  media.add('(min-width: 900px) and (min-height: 640px) and (prefers-reduced-motion: no-preference)', () => {
+    const root = document.documentElement;
+    const reveal = gsap.timeline({ paused: true, onUpdate: refreshScenes })
+      .fromTo('#capabilities .exhibit-heading .eyebrow', { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: .6, ease: 'power3.out' }, 0)
+      .fromTo('#services-title', { autoAlpha: 0, yPercent: 30 }, { autoAlpha: 1, yPercent: 0, duration: .9, ease: 'expo.out' }, .08)
+      .fromTo('#capabilities .exhibit-heading .lead', { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: .8, ease: 'power3.out' }, .25)
+      .fromTo(state, { rings: 0 }, { rings: 1, duration: 1.1, ease: 'power2.out' }, .1)
+      .fromTo(state, { spin: 0 }, { spin: 1, duration: 1.8, ease: 'power1.in' }, .4)
+      .fromTo('.specimen-label', { autoAlpha: 0, x: -14 }, { autoAlpha: 1, x: 0, duration: .7, stagger: .12, ease: 'power3.out' }, .35)
+      .fromTo('.model-credit, .motion-control', { autoAlpha: 0 }, { autoAlpha: 1, duration: .6 }, .6)
+      .fromTo('.discipline', { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: .8, stagger: .08, ease: 'power3.out' }, .45)
+      .fromTo('#discipline-status', { autoAlpha: 0 }, { autoAlpha: 1, duration: .5 }, .9);
+    let draw, landed = false;
+    function sync(self) {
+      const p = self.progress;
+      root.classList.toggle('flight-moving', p > 0 && p < 1 && !!draw?.(p, self.end - self.scroll()));
+      root.classList.toggle('flight-landed', p >= 1);
+      if (p >= 1 && !landed) { landed = true; reveal.play(); }
+      else if (p < 1 && landed) { landed = false; reveal.reverse(); }
+    }
+    const flight = ScrollTrigger.create({
+      trigger: '#capabilities', start: () => (shared.gapPin ? shared.gapPin.end : 'top bottom'),
+      endTrigger: '.exhibit-heading', end: 'top 76px', invalidateOnRefresh: true, refreshPriority: 2.5, onUpdate: sync, onRefresh: sync
+    });
+    createFlight().then(d => { draw = d; root.classList.add('flight-on'); sync(flight); }).catch(error => console.warn('Satellite flight unavailable:', error.message));
+    return () => { flight.kill(); reveal.progress(1).kill(); draw = undefined; root.classList.remove('flight-on', 'flight-moving', 'flight-landed'); state.rings = 1; state.spin = 1; refreshScenes(); };
   });
   // Phones and tablets have no pin, so the revision change plays as the illustration crosses the screen.
   media.add('(max-width: 899px) and (prefers-reduced-motion: no-preference)', () => {

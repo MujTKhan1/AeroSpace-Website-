@@ -238,3 +238,15 @@
 @media (max-width: 580px) {
   .gap-exhibit { height: 250px; }
 }
+
+/* Gap-to-Capabilities flight (desktop): the overlay carries the satellite while both exhibits hide theirs. */
+.flight-canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; visibility: hidden; }
+.flight-moving .flight-canvas { visibility: visible; }
+.flight-moving .gap-exhibit canvas, .flight-on:not(.flight-landed) .spacecraft-exhibit > canvas, .flight-on:not(.flight-landed) .spacecraft-exhibit > .model-fallback { visibility: hidden; }
+
+/* Desktop: a compact Capabilities heading and a stage sized to the screen height, so the landed satellite
+   sits in the upper middle of the screen with its arrays in view. */
+@media (min-width: 900px) {
+  .exhibit-heading h2 { font-size: clamp(54px, min(5.4vw, 9.4vh), 90px); }
+  .spacecraft-exhibit { height: clamp(380px, min(39vw, 100vh - 360px), 560px); margin-top: -40px; }
+}
