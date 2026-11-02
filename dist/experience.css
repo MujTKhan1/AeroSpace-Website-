@@ -90,18 +90,22 @@
 .signal-heading h2 { color: #edf1f7; font-size: clamp(38px, 4.5vw, 64px); }
 .signal-heading h2 em { color: #86c4db; }
 .signal-heading .lead { color: #a7b6c8; margin: 0; font-size: 16px; }
-.signal-diagram { position: relative; height: 470px; margin: 20px 0; }
+.signal-diagram { position: relative; height: 560px; margin: 28px 0 36px; }
 .signal-model { position: absolute; inset: 0; }
-.signal-model .model-fallback { left: -6%; width: 45%; }
-.record-stack { position: absolute; right: 0; width: 63%; inset-block: 55px 65px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; align-items: center; pointer-events: none; }
-.record-sheet { background: #f7f6f2; color: var(--ink); padding: 24px 20px; min-height: 250px; box-shadow: 0 18px 35px #0004; transform: rotate(-5deg); }
-.record-sheet:nth-child(2) { transform: translateY(40px) rotate(3deg); }
-.record-sheet:nth-child(3) { transform: translateY(-20px) rotate(7deg); }
-.record-sheet .mono { font-size: 7px; color: var(--muted); letter-spacing: .09em; }
-.record-sheet h3 { margin: 25px 0 12px; line-height: 1.15; font-size: clamp(19px, 1.9vw, 27px); font-weight: 500; }
-.record-sheet p { font-size: 10px; color: var(--muted); line-height: 1.5; margin: 0; }
-.record-line { height: 1px; background: var(--line-strong); margin: 16px 0; }
-.record-question { font-size: 9px; color: var(--muted); line-height: 1.5; display: block; }
+.signal-model .model-fallback { left: -2%; width: 40%; }
+.signal-hub { position: absolute; left: 45%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: none; z-index: 1; }
+.signal-hub-dot { width: 14px; height: 14px; border-radius: 50%; background: #e4b071; box-shadow: 0 0 20px #e4b07199, 0 0 4px #ffd4a166; }
+.signal-hub-label { color: #d2dbe7; font-size: 11px; letter-spacing: .22em; display: flex; gap: 8px; align-items: center; font-weight: 500; }
+.signal-hub-label i { color: #e4b071; font-style: normal; font-size: 13px; }
+.record-list { position: absolute; right: 0; width: 45%; top: 0; bottom: 0; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; justify-content: space-around; }
+.record-row { position: relative; }
+.record-eyebrow { font-size: 10px; color: #86c4db; display: flex; align-items: center; gap: 10px; margin: 0 0 10px; letter-spacing: .14em; text-transform: uppercase; }
+.record-eyebrow span { color: #86c4db; font-family: var(--display); font-size: 15px; letter-spacing: 0; }
+.record-eyebrow em { color: #677890; font-style: normal; font-weight: 400; font-size: 12px; }
+.record-eyebrow::after { content: ''; flex: 0 0 32px; height: 1px; background: #ffffff2a; margin-left: 6px; }
+.record-title { margin: 0 0 10px; font-size: clamp(22px, 2vw, 30px); line-height: 1.12; font-weight: 500; color: #edf1f7; letter-spacing: -.01em; }
+.record-body { margin: 0; font-size: 15px; line-height: 1.55; color: #a7b6c8; max-width: 44ch; }
+.record-body strong { color: #edf1f7; font-weight: 500; }
 .signal-source { position: absolute; left: 2%; bottom: 56px; color: #b5c3d5; font-size: 8px; display: flex; align-items: center; gap: 12px; }
 .signal-origin { width: 5px; height: 5px; background: #e1af70; border-radius: 50%; box-shadow: 0 0 12px #f6b96a; }
 .signal-bottom { display: flex; gap: 24px; justify-content: space-between; border-top: 1px solid #ffffff26; padding-top: 24px; color: #8fa0b6; font-size: 8px; }
@@ -121,8 +125,8 @@
 }
 @media (max-width: 1100px) {
   .discipline { padding-inline: 18px; }
-  .record-stack { gap: 14px; width: 65%; }
-  .record-sheet { padding: 20px 14px; }
+  .record-list { width: 50%; }
+  .record-title { font-size: 24px; }
   .chapter-panel { gap: 20px; }
   .change-metadata > div { grid-template-columns: 110px 1fr; }
   .evidence-sheet { padding: 24px; }
@@ -149,10 +153,9 @@
   .signal-heading { grid-template-columns: 1fr; gap: 20px; }
   .signal-heading .eyebrow { margin-bottom: 0; }
   .signal-heading .lead { max-width: 52ch; }
-  .signal-diagram { height: 500px; }
-  .record-stack { width: 66%; right: -1%; gap: 12px; }
-  .record-sheet { min-height: 235px; }
-  .record-sheet h3 { font-size: 20px; }
+  .signal-diagram { height: 560px; }
+  .record-list { width: 54%; right: -1%; }
+  .record-title { font-size: 22px; }
   .signal-source { font-size: 7px; max-width: 140px; }
 }
 @media (max-width: 580px) {
@@ -194,18 +197,16 @@
   .signal-stage { padding-top: 64px; }
   .signal-heading h2 { font-size: 39px; }
   .signal-heading .lead { font-size: 14px; }
-  .signal-diagram { height: 650px; margin-top: 0; }
-  .signal-model { height: 400px; top: -35px; }
+  .signal-diagram { height: auto; margin-top: 0; }
+  .signal-model { position: relative; inset: auto; height: 380px; }
   .signal-model .model-fallback { width: 80%; left: 10%; }
-  .record-stack { width: 100%; right: 0; top: auto; bottom: 30px; gap: 10px; }
-  .record-sheet { padding: 16px 10px; min-height: 220px; transform: rotate(-4deg); }
-  .record-sheet:nth-child(2) { transform: translateY(20px) rotate(1deg); }
-  .record-sheet:nth-child(3) { transform: translateY(-10px) rotate(5deg); }
-  .record-sheet .mono { font-size: 5px; }
-  .record-sheet h3 { font-size: 17px; margin-top: 20px; }
-  .record-sheet p { font-size: 8px; }
-  .record-question { font-size: 7px; }
-  .signal-source { top: 300px; bottom: auto; left: 2%; max-width: none; }
+  .signal-hub { display: none; }
+  .record-list { position: relative; width: 100%; top: auto; bottom: auto; right: auto; display: flex; flex-direction: column; gap: 28px; padding: 28px 0 0; border-top: 1px solid #ffffff14; }
+  .record-eyebrow { font-size: 9px; }
+  .record-eyebrow span { font-size: 14px; }
+  .record-title { font-size: 20px; margin-bottom: 8px; }
+  .record-body { font-size: 13.5px; }
+  .signal-source { position: relative; top: auto; bottom: auto; left: 0; margin-top: 10px; max-width: none; }
   .signal-bottom { flex-direction: column; gap: 10px; font-size: 7px; }
 }
 @media (prefers-reduced-motion: reduce) {

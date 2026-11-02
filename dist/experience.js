@@ -170,26 +170,39 @@ async function createExhibit(stage) {
       if (type === 'gap') subject.scale.setScalar(Math.min(viewWidth * 1.35, 11));
       if (type === 'signal') {
         const phone = innerWidth < 581;
-        subject.position.set(phone ? 0 : -viewWidth * .34, .1, 0); subject.scale.setScalar(phone ? 3.2 : 3.4);
+        // Hub-and-fork diagram: satellite on the left, amber hub in the centre, three cyan branches to the records.
+        subject.position.set(phone ? 0 : -viewWidth * .3, .1, 0); subject.scale.setScalar(phone ? 3.2 : 3.6);
         clearPaths();
         if (!phone) {
-          const start = new THREE.Vector3(-viewWidth * .27, .3, .4);
-          // The connectors end at the assembled records, so measure them there and put the scroll state back.
+          const trunkStart = new THREE.Vector3(-viewWidth * .22, .2, .4);
+          // Hub position in scene coords: measure the DOM dot so paths align with it on every resize.
+          const hubEl = document.querySelector('.signal-hub-dot');
+          const hubRect = hubEl ? hubEl.getBoundingClientRect() : null;
+          const hub = hubRect
+            ? new THREE.Vector3(((hubRect.left + hubRect.width / 2 - rect.left) / width - .5) * viewWidth, (.5 - (hubRect.top + hubRect.height / 2 - rect.top) / height) * 6, .4)
+            : new THREE.Vector3(0, 0, .4);
+          const makePath = (curve, hex, tint, radius) => {
+            const mat = new THREE.ShaderMaterial({
+              uniforms: { uReveal: { value: 1 }, uColor: { value: new THREE.Color(hex) } },
+              vertexShader: 'varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+              fragmentShader: 'varying vec2 vUv; uniform float uReveal; uniform vec3 uColor; void main(){if(vUv.x>uReveal)discard;gl_FragColor=vec4(uColor,.78);}', transparent: true, depthWrite: false
+            });
+            const line = new THREE.Mesh(new THREE.TubeGeometry(curve, 70, radius, 5, false), mat); line.userData.curve = curve; paths.push(line); scene.add(line);
+            const pulse = new THREE.Mesh(new THREE.SphereGeometry(radius * 4, 10, 10), new THREE.MeshBasicMaterial({ color: tint })); pulses.push(pulse); scene.add(pulse);
+          };
+          // Trunk (orange): nearly straight from the satellite's antenna area to the hub.
+          const trunk = new THREE.CubicBezierCurve3(trunkStart, trunkStart.clone().lerp(hub, .4).add(new THREE.Vector3(0, .05, 0)), trunkStart.clone().lerp(hub, .75).add(new THREE.Vector3(0, -.02, 0)), hub);
+          makePath(trunk, 0xe4b071, 0xffc586, .012);
+          // Branches (cyan): the records are measured at the end-of-timeline layout, then the state is put back.
           const progress = recordsTimeline?.progress();
           recordsTimeline?.progress(1, true);
-          document.querySelectorAll('.record-sheet').forEach((sheet, i) => {
-            const r = sheet.getBoundingClientRect();
-            const x = ((r.left + r.width * .12 - rect.left) / width - .5) * viewWidth;
-            const y = (.5 - (r.top + r.height * .45 - rect.top) / height) * 6;
+          document.querySelectorAll('.record-row').forEach(row => {
+            const r = row.getBoundingClientRect();
+            const x = ((r.left + 6 - rect.left) / width - .5) * viewWidth;
+            const y = (.5 - (r.top + r.height * .5 - rect.top) / height) * 6;
             const end = new THREE.Vector3(x, y, .4);
-            const curve = new THREE.CubicBezierCurve3(start, start.clone().add(new THREE.Vector3(1.2, .7 - i * .55, 0)), end.clone().add(new THREE.Vector3(-1, .4, 0)), end);
-            const mat = new THREE.ShaderMaterial({
-              uniforms: { uReveal: { value: 1 }, uColor: { value: new THREE.Color(i === 0 ? 0xe4b071 : 0x78bdd3) } },
-              vertexShader: 'varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-              fragmentShader: 'varying vec2 vUv; uniform float uReveal; uniform vec3 uColor; void main(){if(vUv.x>uReveal)discard;gl_FragColor=vec4(uColor,.75);}', transparent: true, depthWrite: false
-            });
-            const line = new THREE.Mesh(new THREE.TubeGeometry(curve, 70, .008, 5, false), mat); line.userData.curve = curve; paths.push(line); scene.add(line);
-            const pulse = new THREE.Mesh(new THREE.SphereGeometry(.035, 10, 10), new THREE.MeshBasicMaterial({ color: i === 0 ? 0xffc586 : 0x9edcf0 })); pulses.push(pulse); scene.add(pulse);
+            const branch = new THREE.CubicBezierCurve3(hub, hub.clone().add(new THREE.Vector3(.8, (end.y - hub.y) * .3, 0)), end.clone().add(new THREE.Vector3(-.7, (hub.y - end.y) * .15, 0)), end);
+            makePath(branch, 0x78bdd3, 0x9edcf0, .009);
           });
           recordsTimeline?.progress(progress, true);
         }
@@ -229,11 +242,20 @@ async function createExhibit(stage) {
         ghost.traverse(mesh => { if (mesh.isMesh) mesh.material.opacity = 1 - state.revision * .88; });
       } else {
         subject.rotation.set(0, -.7 + Math.sin(time * .12) * .08, .04);
-        paths.forEach((path, i) => {
-          path.material.uniforms.uReveal.value = Math.max(0, Math.min(1, state.signal * 1.4 - i * .15));
-          const p = (time * .15 + i * .27) % 1;
-          pulses[i].position.copy(path.userData.curve.getPoint(p)); pulses[i].visible = p < path.material.uniforms.uReveal.value;
-        });
+        // paths[0] is the orange trunk, paths[1..3] are the cyan branches.
+        if (paths[0]) {
+          paths[0].material.uniforms.uReveal.value = Math.max(0, Math.min(1, state.signal * 3));
+          const p = (time * .22) % 1;
+          pulses[0].position.copy(paths[0].userData.curve.getPoint(p));
+          pulses[0].visible = p < paths[0].material.uniforms.uReveal.value;
+        }
+        for (let i = 1; i < paths.length; i++) {
+          const reveal = Math.max(0, Math.min(1, (state.signal - .3) * 2 - (i - 1) * .1));
+          paths[i].material.uniforms.uReveal.value = reveal;
+          const p = (time * .18 + (i - 1) * .22) % 1;
+          pulses[i].position.copy(paths[i].userData.curve.getPoint(p));
+          pulses[i].visible = p < reveal && reveal > .08;
+        }
       }
       renderer.render(scene, camera);
     }
@@ -368,7 +390,8 @@ function setupMotion() {
     // One scrubbed timeline for the records and connectors: it finishes with the diagram on screen, leaves
     // them assembled while the section is read, and runs backwards and forwards on every pass.
     recordsTimeline = gsap.timeline({ onUpdate: refreshScenes, scrollTrigger: { trigger: '.signal-diagram', start: 'top 85%', end: 'center 52%', scrub: .7, onRefresh: () => scenes.forEach(scene => scene.layout()) } })
-      .from('.record-sheet', { opacity: 0, rotationY: -65, x: 45, duration: .62, stagger: .19, ease: 'power3.out' }, 0)
+      .fromTo('.signal-hub', { scale: 0, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: .35, ease: 'back.out(2)' }, .28)
+      .from('.record-row', { opacity: 0, x: 48, duration: .52, stagger: .16, ease: 'power3.out' }, .35)
       .fromTo(state, { signal: 0 }, { signal: 1, duration: 1, ease: 'none' }, 0);
     return () => { recordsTimeline = undefined; state.signal = 1; refreshScenes(); };
   });
